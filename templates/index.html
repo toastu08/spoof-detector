@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spoofy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0d1117; color: #c9d1d9; }
+        .drag-active { border-color: #3b82f6 !important; background-color: rgba(59, 130, 246, 0.1); }
+        .loader { border: 4px solid rgba(255, 255, 255, 0.1); border-left-color: #3b82f6; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="max-w-2xl w-full bg-gray-900 rounded-2xl shadow-2xl p-8 border border-gray-800">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-white mb-2">Spoofy</h1>
+            <p class="text-sm text-gray-400">Spoofed audio detector</p>
+        </div>
+
+        <div id="drop-zone" class="border-2 border-dashed border-gray-600 rounded-xl p-10 text-center transition-all cursor-pointer hover:border-blue-500 hover:bg-gray-800">
+            <p class="text-gray-300 font-medium mb-1">Drag and drop your audio file here</p>
+            <input type="file" id="file-input" class="hidden" accept=".wav,.flac,.mp3">
+        </div>
+
+        <div id="file-display" class="hidden mt-4 text-center text-sm font-medium text-blue-400 bg-blue-900/20 py-2 rounded-lg">
+            Selected: <span id="file-name"></span>
+        </div>
+
+        <button id="analyze-btn" class="w-full mt-6 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-lg hidden">
+            Analyze Audio
+        </button>
+
+        <div id="loading" class="hidden flex flex-col items-center justify-center mt-8 space-y-3">
+            <div class="loader"></div>
+            <p class="text-sm text-gray-400 animate-pulse">Running Neural Network...</p>
+        </div>
+
+        <!-- Diagnostic Results Block -->
+        <div id="results" class="hidden mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Left Side: Numbers -->
+            <div id="result-box" class="p-6 rounded-xl border text-center flex flex-col justify-center">
+                <h2 class="text-sm uppercase tracking-wider text-gray-500 mb-1">Threshold Prediction</h2>
+                <div id="prediction-text" class="text-2xl font-bold mb-3"></div>
+                
+                <h2 class="text-sm uppercase tracking-wider text-gray-500 mt-4 mb-1">Raw Network Output</h2>
+                <div class="text-xl text-white font-mono bg-black rounded p-2" id="raw-prob-text"></div>
+                <p class="text-xs text-gray-500 mt-2">Scale: 0.0 (Real) to 1.0 (Spoof)</p>
+            </div>
+            
+            <!-- Right Side: The Matrix -->
+            <div class="flex flex-col items-center">
+                <h2 class="text-sm uppercase tracking-wider text-gray-500 mb-2">Generated Spectrogram</h2>
+                <img id="spectrogram-img" class="rounded-lg border border-gray-700 w-full object-cover shadow-lg" alt="Spectrogram">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const fileDisplay = document.getElementById('file-display');
+        const fileName = document.getElementById('file-name');
+        const analyzeBtn = document.getElementById('analyze-btn');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const predictionText = document.getElementById('prediction-text');
+        const rawProbText = document.getElementById('raw-prob-text');
+        const spectrogramImg = document.getElementById('spectrogram-img');
+        const resultBox = document.getElementById('result-box');
+
+        let currentFile = null;
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-active'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-active'));
+        dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('drag-active'); if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]); });
+        fileInput.addEventListener('change', (e) => { if (e.target.files.length > 0) handleFile(e.target.files[0]); });
+
+        function handleFile(file) {
+            currentFile = file;
+            fileName.textContent = file.name;
+            fileDisplay.classList.remove('hidden');
+            analyzeBtn.classList.remove('hidden');
+            results.classList.add('hidden');
+        }
+
+        analyzeBtn.addEventListener('click', async () => {
+            if (!currentFile) return;
+            analyzeBtn.classList.add('hidden');
+            loading.classList.remove('hidden');
+            results.classList.add('hidden');
+
+            const formData = new FormData();
+            formData.append('file', currentFile);
+
+            try {
+                const response = await fetch('/predict', { method: 'POST', body: formData });
+                const data = await response.json();
+
+                if (!response.ok) throw new Error(data.detail || "Error");
+
+                predictionText.textContent = `${data.prediction} (${data.confidence})`;
+                rawProbText.textContent = data.raw_probability;
+                spectrogramImg.src = `data:image/png;base64,${data.spectrogram}`;
+
+                if (data.prediction.includes('AI Generated')) {
+                    predictionText.className = "text-xl font-bold mb-3 text-red-500";
+                    resultBox.className = "p-6 rounded-xl border border-red-900/50 bg-red-900/10 text-center flex flex-col justify-center";
+                } else {
+                    predictionText.className = "text-xl font-bold mb-3 text-green-500";
+                    resultBox.className = "p-6 rounded-xl border border-green-900/50 bg-green-900/10 text-center flex flex-col justify-center";
+                }
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+                analyzeBtn.classList.remove('hidden');
+            } finally {
+                loading.classList.add('hidden');
+                results.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
