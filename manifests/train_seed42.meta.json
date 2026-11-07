@@ -1,0 +1,75 @@
+{
+  "experiment": "E0.1",
+  "title": "Reconstruct the 10,080-clip first-iteration training subset",
+  "generated_at_utc": "2026-11-06T22:54:22+00:00",
+  "git": {
+    "commit": "8d90e90f19a8fede3d72719a21921704c4da53eb",
+    "dirty": true
+  },
+  "sources": {
+    "protocol": {
+      "path": "data/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.train.trn.txt",
+      "sha256": "65a289e4009400b42bb4f1e47ac60938d93f7f595452d1f220d35defc3de8ab8"
+    },
+    "audio_dir": "data/LA/ASVspoof2019_LA_train/flac",
+    "reference_dir": "data/dataset_img/train"
+  },
+  "recipe": {
+    "bonafide": "all rows with label=bonafide, protocol order",
+    "spoof": "DataFrame.sample(n=7500, random_state=42) on the spoof pool",
+    "shuffle": "pd.concat([bonafide, spoof_sample]).sample(frac=1, random_state=42).reset_index(drop=True)"
+  },
+  "params": {
+    "seed": 42,
+    "n_spoof": 7500,
+    "sample_rate": 16000,
+    "target_seconds": 4,
+    "n_mels": 128,
+    "cmap": "magma",
+    "render": "plt.imsave(cmap='magma', origin='lower')",
+    "power_to_db_ref": "np.max"
+  },
+  "counts": {
+    "rows": 10080,
+    "label_counts": {
+      "bonafide": 2580,
+      "spoof": 7500
+    },
+    "speakers": 20,
+    "bonafide_speakers": 20,
+    "spoof_speakers": 20,
+    "attack_counts": {
+      "A01": 1243,
+      "A02": 1235,
+      "A03": 1295,
+      "A04": 1232,
+      "A05": 1252,
+      "A06": 1243
+    }
+  },
+  "outputs": {
+    "images": "data/derived/train_seed42",
+    "manifest": "manifests/train_seed42.csv",
+    "manifest_sha256": "22f98abdf3392e04f7df3632809f81d033d5687773946cd103f5066846ed195e",
+    "metadata": "data/derived/train_seed42/metadata_train_seed42.csv"
+  },
+  "parity": {
+    "skipped": false,
+    "checked": 10080,
+    "matched": 10080,
+    "mismatched": 0,
+    "reference_dir": "data/dataset_img/train",
+    "report": "reports/phase0/E0.1/pixel_parity.csv"
+  },
+  "environment": {
+    "python": "3.14.8",
+    "pandas": "3.1.1",
+    "numpy": "2.5.4",
+    "librosa": "1.0.0",
+    "matplotlib": "3.11.2"
+  },
+  "limitations": [
+    "The original 10,080 PNGs no longer exist; pixel parity is verified against the later full-split export, not the lost originals.",
+    "sha256_png is byte-level and may change with matplotlib/zlib versions; the pixel comparison is the authoritative check."
+  ]
+}

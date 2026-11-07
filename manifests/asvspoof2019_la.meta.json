@@ -1,0 +1,67 @@
+{
+  "dataset": "ASVspoof 2019 Logical Access (LA)",
+  "doi": "10.7488/ds/2555",
+  "license": "ODC Attribution License (ODC-By 1.0)",
+  "validated_at_utc": "2026-11-07T14:45:22.412236+00:00",
+  "command": "uv run python scripts/verify_asvspoof2019_la.py --archive data/archive.zip --accept-any-archive",
+  "data_root": "data/LA",
+  "validation": {
+    "status": "pass",
+    "problems": []
+  },
+  "counts": {
+    "total_files": 122318,
+    "total_bytes": 7655650274,
+    "readme_sha256": "c99a875d94d91734c2468eff13a1d3a60991eb308335caa1750be1020c2748fe",
+    "license_sha256": "99a4d3e0db6f9a5cd8871f9737b207af01de333f57c6269a11ce755227c1555d"
+  },
+  "splits": {
+    "train": {
+      "protocol_rows": 25380,
+      "bonafide": 2580,
+      "spoof": 22800,
+      "flac_files": 25380,
+      "enrollment_files": 0,
+      "protocol_sha256": "65a289e4009400b42bb4f1e47ac60938d93f7f595452d1f220d35defc3de8ab8",
+      "missing_protocol_files": 0,
+      "unexpected_files": 0
+    },
+    "dev": {
+      "protocol_rows": 24844,
+      "bonafide": 2548,
+      "spoof": 22296,
+      "flac_files": 24986,
+      "enrollment_files": 142,
+      "protocol_sha256": "2fedaebf1ba3ae1a9bb7d3ec916804ac237b4eee063a27fa92e6549f03d129c7",
+      "missing_protocol_files": 0,
+      "unexpected_files": 0
+    },
+    "eval": {
+      "protocol_rows": 71237,
+      "bonafide": 7355,
+      "spoof": 63882,
+      "flac_files": 71933,
+      "enrollment_files": 696,
+      "protocol_sha256": "84fce576efff092269a0a6ad247d2e9f2f7b4d4e25a4545efb2518da92708036",
+      "missing_protocol_files": 0,
+      "unexpected_files": 0
+    }
+  },
+  "archive": {
+    "path": "data/archive.zip",
+    "size_bytes": 7646913333,
+    "md5": "793d7b00e00ec0466acfd85800b714fd",
+    "sha256": "b2784cae7498e79acd46b8d5148a89e1c332198d610384bc5c41eedcec6d7055",
+    "is_official": false,
+    "source": "Kaggle: anishsarkar22/asvpoof-2019-dataset-la (third-party re-upload; extracted content is validated)",
+    "total_files": 122318,
+    "total_bytes": 7655650274,
+    "validation": {
+      "status": "pass",
+      "problems": [],
+      "warnings": [
+        "archive is not the official LA.zip; accepting Kaggle: anishsarkar22/asvpoof-2019-dataset-la (third-party re-upload; extracted content is validated) because --accept-any-archive was given"
+      ]
+    }
+  }
+}

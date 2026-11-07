@@ -37,7 +37,7 @@ class AudioSpoofDetector(nn.Module):
 # ==========================================
 # 2. SETUP APP & GLOBALS
 # ==========================================
-app = FastAPI(title="Bitdefender Deepfake Audio Detector")
+app = FastAPI(title="Deepfake Audio Detector")
 
 # Safely resolve the template directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
