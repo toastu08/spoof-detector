@@ -16,15 +16,30 @@ from __future__ import annotations
 
 from io import BytesIO
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import librosa
 import numpy as np
+from PIL import Image
+
+if TYPE_CHECKING:
+    from torchvision.transforms import Compose
 
 SAMPLE_RATE = 16_000
 TARGET_SECONDS = 4
 TARGET_LENGTH = SAMPLE_RATE * TARGET_SECONDS
 N_MELS = 128
 COLORMAP = "magma"
+
+# Version string recorded in evaluation reports.  Bump only with a documented
+# ablation that changes the audio-to-image contract (AGENTS.md G3).
+PREPROCESSING_VERSION = "mel128-magma-4s-v1"
+
+# Model input contract: the 126 x 128 rendered image is resized to 224 x 224,
+# converted to a tensor, and ImageNet-normalised.
+INFERENCE_SIZE = 224
+IMAGENET_MEAN = (0.485, 0.456, 0.406)
+IMAGENET_STD = (0.229, 0.224, 0.225)
 
 
 def generate_mel_spectrogram(
@@ -70,3 +85,33 @@ def render_mel_spectrogram_png_bytes(
     buffer = BytesIO()
     plt.imsave(buffer, spec_db, cmap=cmap, origin="lower", format="png")
     return buffer.getvalue()
+
+
+def load_mel_image(file_path: str | Path) -> Image.Image:
+    """Render a source audio file to the RGB image the baseline sees.
+
+    This uses the same renderer as dataset export, so the result is identical
+    to reading the exported PNG.  It is slower than reading the PNG because it
+    decodes audio and recomputes the mel spectrogram.
+    """
+    spec_db = generate_mel_spectrogram(file_path)
+    png_bytes = render_mel_spectrogram_png_bytes(spec_db)
+    with Image.open(BytesIO(png_bytes)) as image:
+        image.load()
+        return image.convert("RGB")
+
+
+def build_inference_transform() -> "Compose":
+    """Return the exact image transform used at inference time."""
+    from torchvision import transforms
+
+    return transforms.Compose(
+        [
+            transforms.Resize((INFERENCE_SIZE, INFERENCE_SIZE)),
+            transforms.ToTensor(),
+            transforms.Normalize(
+                mean=list(IMAGENET_MEAN),
+                std=list(IMAGENET_STD),
+            ),
+        ]
+    )

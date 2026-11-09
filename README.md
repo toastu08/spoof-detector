@@ -5,9 +5,11 @@ Logical Access (LA). The current baseline renders a 4-second clip as a
 magma-coloured mel spectrogram and classifies it with a frozen ImageNet-pretrained
 ResNet18 plus a small linear head.
 
-> **Status (2026-11-07):** Phase 0, E0.1 complete. The 10,080-clip training
-> subset is reconstructed at `data/derived/train_seed42/` with manifest
-> `manifests/train_seed42.csv`. The evaluation harness (E0.2), frozen baseline
+> **Status (2026-11-09):** Phase 0, E0.1 and E0.2 complete. The 10,080-clip
+> training subset is reconstructed at `data/derived/train_seed42/` with manifest
+> `manifests/train_seed42.csv`. The evaluation harness is in
+> `src/spoof_detection/evaluate.py`, with the first full baseline under
+> `reports/baseline/best_audio_spoof_model_unweighted/`. The frozen baseline
 > table (E0.3), contract tests (E0.4), and leakage audit (E0.5) are still open.
 
 The sigmoid output is a **score, not a calibrated probability**. The demo's
@@ -174,12 +176,47 @@ use it, cite:
 | `1.1_data_prep-train.ipynb`, `1.2_data_prep-dev.ipynb`, `1.3_data_prep-eval.ipynb` | Spectrogram export notebooks |
 | `2_model.ipynb` | Original training/evaluation notebook |
 | `app.py`, `templates/` | FastAPI inference demo |
-| `src/spoof_detection/` | Reusable protocol, sampling, preprocessing, and dataset-validation code |
+| `src/spoof_detection/` | Reusable protocol, sampling, preprocessing, model-loading, metrics, and evaluation code |
 | `scripts/` | Reproduction and dataset-verification entry points |
 | `manifests/` | Data manifests and provenance metadata |
 | `reports/` | Experiment reports |
 | `Models/` | Model iteration notes and (gitignored) checkpoints |
 | `data/` | Downloaded/derived data (gitignored) |
+
+## Baseline evaluation
+
+Score the unweighted first-iteration checkpoint on the full dev and eval splits:
+
+```bash
+make evaluate
+# equivalent:
+uv run python -m spoof_detection.evaluate \
+  --checkpoint Models/Itteration1/best_audio_spoof_model_unweighted.pth \
+  --asvspoof dev eval --source image --output-root reports/baseline
+```
+
+The command writes `metrics.json`, per-clip `scores_<split>.csv`, and
+`summary.md` under `reports/baseline/<checkpoint-stem>/`. It verifies the
+checkpoint key mapping with zero missing/unexpected keys, selects only the dev
+EER threshold, and never tunes on eval. See
+[`reports/phase0/E0.2/README.md`](reports/phase0/E0.2/README.md) for the full
+metric contract and first results.
+
+To score an external corpus, provide a labelled CSV with a `label` column and a
+path column (`image_path`/`img_path` for `--source image`, or
+`source_flac`/`audio_path`/`file_path`/`path` for `--source audio`):
+
+```bash
+uv run python -m spoof_detection.evaluate \
+  --checkpoint Models/Itteration1/best_audio_spoof_model_unweighted.pth \
+  --manifest path/to/manifest.csv --source image --split-name my_corpus \
+  --output-dir reports/external/my_corpus
+```
+
+`--limit N` produces a deterministic class-stratified smoke-test subset and
+names the output directory `<checkpoint>_partialN`. Partial runs are not
+baseline results. Manifests may be single-class; EER and AUC are then reported
+as `n/a`, while threshold and score summaries are still produced.
 
 ## Demo
 
@@ -199,7 +236,8 @@ uv run python -m unittest discover -s tests -p "test_*.py" -v
 
 The dataset validator tests use a miniature synthetic tree and do not require the
 7.6 GB download. The E0.1 reconstruction test reads the real `data/LA` and
-`data/dataset_img/train` exports.
+`data/dataset_img/train` exports. The ASVspoof checks in
+`tests/test_evaluate.py` skip when the protocols or image exports are missing.
 
 ## Known limitations
 
@@ -207,7 +245,9 @@ The dataset validator tests use a miniature synthetic tree and do not require th
   risk-based decisions.
 - The external smoke test in `tests/test1/` contains eight spoofed clips and no
   bonafide controls; it measures neither specificity nor EER.
-- There is no automated evaluation harness yet (E0.2), so there is no frozen
-  baseline table for dev/eval.
+- The evaluation harness currently reports EER, AUC, threshold metrics, and
+  diagnostics but not min t-DCF, confidence intervals, or significance tests.
+- Only the unweighted checkpoint has a baseline run so far; the frozen two-model
+  table is E0.3.
 - The current model is a frozen ImageNet backbone with a small linear head. It is
   a research probe, not a production anti-spoofing system.

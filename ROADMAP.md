@@ -5,12 +5,13 @@ Prioritized research roadmap for the audio spoof detection project.
 Read [`AGENTS.md`](./AGENTS.md) first. It contains the operating rules, verified
 current state, and hard guardrails. This document assumes those rules.
 
-Last updated: 2026-11-07.
+Last updated: 2026-11-09.
 
-**Current status (2026-11-07):** E0.1 is complete. The 10,080-clip training
-subset is reconstructed at `data/derived/train_seed42/` with manifest
-`manifests/train_seed42.csv`. Phase 0 is not complete; the next gate item is
-E0.2 (evaluation harness).
+**Current status (2026-11-09):** E0.1 and E0.2 are complete. The 10,080-clip
+training subset is reconstructed at `data/derived/train_seed42/` with manifest
+`manifests/train_seed42.csv`, and the evaluation harness scores full dev/eval
+with reproducible per-clip outputs. Phase 0 is not complete; the next gate item
+is E0.3 (freeze the baseline table for both checkpoints).
 
 ---
 
@@ -144,6 +145,10 @@ the evaluation harness, baseline table, contract tests, and leakage audit.
 
 ### E0.2 Build the evaluation harness
 
+**Status: complete (2026-11-09).** Report:
+[`reports/phase0/E0.2/README.md`](reports/phase0/E0.2/README.md). Baseline
+output: `reports/baseline/best_audio_spoof_model_unweighted/`.
+
 - **Question:** What is the baseline performance on dev and eval, including
   per-attack behaviour?
 - **Method:** Add a batch inference CLI in `src/spoof_detection/evaluate.py`.
@@ -155,6 +160,14 @@ the evaluation harness, baseline table, contract tests, and leakage audit.
   sample counts.
 - **Artifact:** `src/spoof_detection/evaluate.py`,
   `reports/baseline/<checkpoint>/metrics.json`, and a readable Markdown summary.
+- **Result:** Unweighted checkpoint, image input, dev/eval full splits. Dev
+  (A01–A06, 24,844 clips, 2,548/22,296): EER 6.16%, AUC 0.9860. Eval (A07–A19,
+  71,237 clips, 7,355/63,882): EER 11.50%, AUC 0.9527. Per-attack eval EER is
+  1.04%–6.98% for A07–A16 but 36.24% for A17 and 18.30% for A18/A19. Dev EER
+  threshold `0.839741` transfers to eval at 5.02% FPR / 82.55% spoof recall.
+  Two full runs produced byte-identical score CSVs and identical metrics.
+  Reading stored PNGs and re-rendering from source audio gave bit-identical
+  scores on a 100-clip-per-split smoke subset.
 
 ### E0.3 Freeze the baseline
 
@@ -198,7 +211,8 @@ Phase 0 is complete only when all of the following are true:
 
 - [x] The 10,080-clip manifest exists and is reproducible from source audio.
       (E0.1, 2026-11-07.)
-- [ ] The evaluation harness runs on dev and eval from one documented command.
+- [x] The evaluation harness runs on dev and eval from one documented command.
+      (E0.2, 2026-11-09: `make evaluate`.)
 - [ ] Both checkpoints have a frozen baseline table with per-attack EER.
 - [ ] Preprocessing and model-loading tests pass.
 - [ ] The data audit finds no train/dev/eval leakage.

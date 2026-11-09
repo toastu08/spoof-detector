@@ -6,11 +6,13 @@ Read this file before changing code, data, models, or experiment claims. For the
 prioritized research plan, read [`ROADMAP.md`](./ROADMAP.md). This file records
 what is true today; the roadmap records what we intend to test next.
 
-Last verified: 2026-11-07. Notebook MCP status re-verified 2026-11-07.
+Last verified: 2026-11-09. Notebook MCP status re-verified 2026-11-07.
 
-**Current status (2026-11-07):** E0.1 complete — the 10,080-clip training subset
-is reconstructed at `data/derived/train_seed42/` with manifest
-`manifests/train_seed42.csv`. Phase 0 is still open: E0.2–E0.5 are pending.
+**Current status (2026-11-09):** E0.1 and E0.2 complete. The 10,080-clip training
+subset is reconstructed at `data/derived/train_seed42/` with manifest
+`manifests/train_seed42.csv`. The evaluation harness scores full dev/eval from
+one command and has produced the unweighted baseline under
+`reports/baseline/`. Phase 0 is still open: E0.3–E0.5 are pending.
 
 ---
 
@@ -89,13 +91,14 @@ was trained on.
 | `data/dataset_img/` | Exported spectrogram PNGs and metadata for train/dev/eval | Existing; do not overwrite |
 | `data/derived/train_seed42/` | Reconstructed 10,080-image first-iteration training set (E0.1) | New; 257 MB; gitignored |
 | `manifests/` | Data manifests and metadata | `train_seed42.csv` + `.meta.json`; `asvspoof2019_la.meta.json` (dataset verification) |
-| `reports/` | Experiment reports | `phase0/E0.1/` provenance and parity results |
+| `reports/` | Experiment reports | `phase0/E0.1/`, `phase0/E0.2/` |
 | `scripts/` | Thin CLI entry points | `reproduce_train_seed42.py`, `verify_asvspoof2019_la.py` |
 | `tests/test1/` | Eight ElevenLabs clips plus `test1-results.csv` | Existing; do not overwrite |
-| `tests/` | Automated tests | `test_seed42_reconstruction.py`; `test_dataset_validation.py` |
-| `src/spoof_detection/` | Reusable package code | `protocol.py`, `sampling.py`, `preprocess.py`, `dataset.py`; evaluation module pending E0.2 |
+| `tests/` | Automated tests | E0.1 reconstruction, dataset validation, metrics, model loading, evaluation |
+| `src/spoof_detection/` | Reusable package code | `protocol.py`, `sampling.py`, `preprocess.py`, `dataset.py`, `model.py`, `metrics.py`, `evaluate.py` |
+| `reports/baseline/` | Per-checkpoint `metrics.json`, per-clip scores, and `summary.md` | E0.2 unweighted dev+eval baseline |
 | `pyproject.toml`, `uv.lock` | Project metadata and locked dependencies | Source of truth for dependencies |
-| `makefile` | `make app` launches the demo; `make verify-data` validates the dataset | Working |
+| `makefile` | `make app`, `make verify-data`, `make evaluate` | Working |
 | `README.md` | Setup, data acquisition, demo, and limitations | Written; keep commands in sync |
 
 ---
@@ -191,7 +194,10 @@ ResNet18 convolutions
 
 Verified parameter facts:
 
-- Total parameters: **11,251,925**.
+- Model parameters: **11,242,305** (11,176,512 backbone + 65,793 head).
+- Batch-norm buffers: **9,620** elements (`running_mean`, `running_var`,
+  `num_batches_tracked`), so the checkpoint holds 11,251,925 tensor elements in
+  total. Earlier notes quoted the tensor total as the parameter count.
 - Trainable parameters in the current setup: **65,793** (the head only).
 - All convolutional and batch-norm affine weights in the backbone are
   bit-identical to `torchvision.models.resnet18(weights="DEFAULT")`.
@@ -317,6 +323,38 @@ Verified locally:
 
 Use the project virtual environment at `.venv/` or `uv run`. Do not install
 packages globally.
+
+### 4.8 Baseline evaluation (E0.2)
+
+`src/spoof_detection/evaluate.py` is the batch evaluation entry point. It loads a
+checkpoint through `model.load_model_from_checkpoint`, which remaps `network.*`
+to `backbone.*` and raises unless the missing and unexpected key lists are both
+empty. It reads either the stored PNGs (`--source image`, default) or re-renders
+source FLACs through the verified preprocessing chain (`--source audio`), and it
+writes `metrics.json`, `scores_<split>.csv`, and `summary.md`.
+
+Verified results for the unweighted checkpoint, image input, full splits:
+
+| Split | Attack subset | Samples (bonafide/spoof) | EER | AUC |
+|---|---|---|---:|---:|
+| dev | A01–A06 | 24,844 (2,548 / 22,296) | 6.16% | 0.9860 |
+| eval | A07–A19 | 71,237 (7,355 / 63,882) | 11.50% | 0.9527 |
+
+Eval per-attack EER is 1.04%–6.98% for A07–A16, 36.24% for A17, and 18.30% for
+A18 and A19. The dev EER threshold is `0.839741`; transferred unchanged to eval
+it gives 5.02% FPR and 82.55% spoof recall. At the fixed `0.5` threshold, eval
+gives 16.55% FPR and 90.99% spoof recall.
+
+Two full runs produced byte-identical `scores_dev.csv` and `scores_eval.csv` and
+identical metric values. On a 100-clip-per-split smoke subset, image and audio
+inputs produced bit-identical logits and scores. Full report:
+`reports/phase0/E0.2/README.md`. Raw outputs:
+`reports/baseline/best_audio_spoof_model_unweighted/`.
+
+The harness supports a generic labelled CSV via `--manifest`, a deterministic
+class-stratified `--limit` for smoke tests, and `--threshold-from` to reuse a
+previous dev threshold for eval-only or manifest runs. Only the dev EER
+threshold is selected on data; eval is never used for threshold selection.
 
 ---
 
@@ -496,12 +534,25 @@ uv run python scripts/verify_asvspoof2019_la.py --archive data/downloads/LA.zip
 # Reconstruct and verify the E0.1 training subset (~3 min, 257 MB)
 uv run python scripts/reproduce_train_seed42.py
 
-# Run the current unit tests (E0.1 reconstruction + dataset validation)
+# Score the unweighted checkpoint on full dev + eval (~2.5 min on the RTX 3050)
+make evaluate
+# or directly:
+uv run python -m spoof_detection.evaluate \
+  --checkpoint Models/Itteration1/best_audio_spoof_model_unweighted.pth \
+  --asvspoof dev eval --source image --output-root reports/baseline
+
+# Smoke-test the harness on a deterministic 100-clip-per-split subset
+uv run python -m spoof_detection.evaluate \
+  --checkpoint Models/Itteration1/best_audio_spoof_model_unweighted.pth \
+  --asvspoof dev eval --source image --limit 100 \
+  --output-dir /tmp/opencode/e0.2-smoke
+
+# Run the current unit tests (E0.1, metrics, model loading, evaluation)
 uv run python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-There is still no CI pipeline and no evaluation entry point; those are E0.2–E0.4
-of the roadmap.
+There is still no CI pipeline; that and the remaining Phase 0 items (E0.3–E0.5)
+are open.
 
 ---
 
@@ -515,13 +566,16 @@ of the roadmap.
    `data/derived/train_seed42/` and verified 10,080/10,080 pixel parity against
    the full-split export. Parity with the lost original PNGs cannot be proven.
    Use the manifest for all training.
-3. **No automated evaluation.** There is no script that computes EER, AUC, or
-   per-attack breakdowns on dev/eval.
+3. **Evaluation harness exists but is incomplete for a benchmark.** E0.2 computes
+   EER, AUC, threshold metrics, per-attack and per-speaker breakdowns on dev/eval
+   (`src/spoof_detection/evaluate.py`). Min t-DCF, confidence intervals, and
+   significance tests are not implemented.
 4. **No bonafide controls in the external set.** Specificity and calibration are
    unmeasured outside ASVspoof.
 5. **Uncalibrated scores.** The app's confidence is not meaningful as a
    probability.
-6. **Silent-load risk.** `strict=False` plus a key remap can hide a broken head.
+6. **Silent-load risk remains in `app.py`.** The evaluation harness loads
+   strictly, but `app.py` still remaps keys and loads with `strict=False`.
 7. **App hardening.** No upload size limit, CORS is fully open, and all uploads
    are written with a `.flac` suffix.
 8. **Dataset leakage unknown.** Confirm that dev/eval were never used for
@@ -531,10 +585,10 @@ of the roadmap.
 10. **Archive artifact.** `data/archive.zip` was deleted on 2026-11-07 after
     verification; only its hashes remain, in
     `manifests/asvspoof2019_la.meta.json`.
-11. **Project scaffolding is partially complete.** `src/spoof_detection/` now has
-    protocol, sampling, preprocessing, and dataset-validation modules with unit
-    tests. `README.md` documents setup and data acquisition, and there is still
-    no CI or evaluation entry point (E0.2).
+11. **Project scaffolding is mostly complete.** `src/spoof_detection/` has
+    protocol, sampling, preprocessing, dataset-validation, model-loading,
+    metrics, and evaluation modules with unit tests. `README.md` documents setup,
+    data acquisition, and evaluation. There is still no CI pipeline.
 
 ---
 

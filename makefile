@@ -1,4 +1,4 @@
-.PHONY: app verify-data
+.PHONY: app verify-data evaluate
 
 app:
 	@clear
@@ -6,3 +6,8 @@ app:
 
 verify-data:
 	uv run python scripts/verify_asvspoof2019_la.py --no-report
+
+evaluate:
+	uv run python -m spoof_detection.evaluate \
+		--checkpoint Models/Itteration1/best_audio_spoof_model_unweighted.pth \
+		--asvspoof dev eval --source image --output-root reports/baseline
