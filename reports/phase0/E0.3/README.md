@@ -8,6 +8,8 @@
 (SHA-256 `22f98abdf3392e04f7df3632809f81d033d5687773946cd103f5066846ed195e`)
 **Frozen baseline:** [`reports/baseline/README.md`](../../baseline/README.md)
 **Audit output:** [`reports/baseline/freeze_report.json`](../../baseline/freeze_report.json)
+**Audit regeneration commit:** `04e8c8485b9744bffdb3b0e52bc99ffbdc7ba9d2`
+(clean tree; regenerated over the same immutable metric and rerun files)
 
 ## Metric contract
 

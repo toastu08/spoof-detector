@@ -1,7 +1,7 @@
 {
   "experiment": "E0.3",
   "title": "Frozen two-checkpoint baseline audit",
-  "generated_at_utc": "2026-11-13T21:47:13.889630+00:00",
+  "generated_at_utc": "2026-11-13T21:53:46.413893+00:00",
   "baseline_root": "reports/baseline",
   "rerun_root": "/tmp/opencode/e0.3-rerun",
   "training_manifest": {
@@ -63,13 +63,9 @@
     "device_name": "NVIDIA GeForce RTX 3050 Laptop GPU"
   },
   "git": {
-    "commit": "67a81104592090857ffd8b85de87edbc4ade9e07",
-    "dirty": true,
-    "status_porcelain": [
-      "M reports/baseline/best_audio_spoof_model_unweighted/metrics.json",
-      " M reports/baseline/best_audio_spoof_model_unweighted/summary.md",
-      "?? reports/baseline/best_audio_spoof_model_weighted/"
-    ]
+    "commit": "04e8c8485b9744bffdb3b0e52bc99ffbdc7ba9d2",
+    "dirty": false,
+    "status_porcelain": []
   },
   "checkpoints": [
     {

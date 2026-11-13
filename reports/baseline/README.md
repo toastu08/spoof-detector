@@ -94,7 +94,10 @@ differ only in the generation timestamp.
 
 ## Checkpoint-load and head-control audit
 
-`reports/baseline/freeze_report.json` records the full audit:
+`reports/baseline/freeze_report.json` records the full audit. The metric runs
+were recorded at code commit `67a8110` with a clean tree. The committed audit was
+regenerated at report commit `04e8c84`, also with a clean tree, over the same
+immutable metric and rerun files; its `git.dirty` field is `false`.
 
 - Training manifest hash, row count, and class balance match the frozen values.
 - Both checkpoints load with zero missing/unexpected keys and the expected
