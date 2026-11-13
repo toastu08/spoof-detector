@@ -1,6 +1,7 @@
-# Baseline evaluation: `best_audio_spoof_model_unweighted.pth`
+# Frozen two-checkpoint baseline: `best_audio_spoof_model_unweighted.pth`
 
-Generated: `2026-11-09T19:54:29.202924+00:00`
+Experiment: `E0.3`
+Generated: `2026-11-13T21:39:04.941407+00:00`
 
 ## Metric contract
 
@@ -155,6 +156,9 @@ Per-speaker EER uses same-speaker bonafide clips as negatives. Recalls are at th
 - State-dict keys: 124 (124 remapped)
 - Missing keys: none
 - Unexpected keys: none
+- Head state SHA-256: `de07fcb49e82ce28add233e10753f8885bfb1a11e0177cb8b89bcb6fc11685d4`
+- Final head bias: -0.2342
+- Batch-norm steps: [4095]
 
 ## Provenance
 
@@ -163,13 +167,13 @@ Per-speaker EER uses same-speaker bonafide clips as negatives. Recalls are at th
 
 ## Environment and command
 
-- Git commit: `4bb5941f9968d1e6b9b224c4c210d4792c2e703c` (dirty: True)
+- Git commit: `67a81104592090857ffd8b85de87edbc4ade9e07` (dirty: False)
 - Device: `cuda` (NVIDIA GeForce RTX 3050 Laptop GPU)
 - Python / torch / torchvision: 3.14.8 / 2.15.0+cu132 / 0.29.2+cu132
 - Batch size / workers: 64 / 4
 
 ```bash
-'/home/toastu/Research/Spoof Detection/.venv/bin/python' -m spoof_detection.evaluate --checkpoint Models/Itteration1/best_audio_spoof_model_unweighted.pth --asvspoof dev eval --source image --output-root reports/baseline --device cuda --batch-size 64 --num-workers 4 --no-progress
+'/home/toastu/Research/Spoof Detection/.venv/bin/python' -m spoof_detection.evaluate --checkpoint Models/Itteration1/best_audio_spoof_model_unweighted.pth --checkpoint Models/Itteration1/best_audio_spoof_model_weighted.pth --asvspoof dev eval --source image --output-root reports/baseline --experiment-id E0.3 --title 'Frozen two-checkpoint baseline'
 ```
 
 ## Caveats

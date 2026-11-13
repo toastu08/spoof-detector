@@ -5,13 +5,14 @@ Prioritized research roadmap for the audio spoof detection project.
 Read [`AGENTS.md`](./AGENTS.md) first. It contains the operating rules, verified
 current state, and hard guardrails. This document assumes those rules.
 
-Last updated: 2026-11-09.
+Last updated: 2026-11-13.
 
-**Current status (2026-11-09):** E0.1 and E0.2 are complete. The 10,080-clip
-training subset is reconstructed at `data/derived/train_seed42/` with manifest
-`manifests/train_seed42.csv`, and the evaluation harness scores full dev/eval
-with reproducible per-clip outputs. Phase 0 is not complete; the next gate item
-is E0.3 (freeze the baseline table for both checkpoints).
+**Current status (2026-11-13):** E0.1, E0.2, and E0.3 are complete. The
+10,080-clip training subset is reconstructed at `data/derived/train_seed42/`
+with manifest `manifests/train_seed42.csv`; the evaluation harness scores full
+dev/eval reproducibly; and the two-checkpoint baseline is frozen at
+`reports/baseline/README.md`. Phase 0 is not complete: E0.4 (contract tests) and
+E0.5 (data and leakage audit) remain.
 
 ---
 
@@ -62,10 +63,10 @@ Each experiment below should make at least one hypothesis more or less likely.
 ### Phase 0 is a gate
 
 Phase 0 must pass before any Phase 1-4 experiment is treated as a result. The
-gate exists because the original training images were overwritten. The notebooks
-are available again and the training manifest is reconstructed (E0.1), but until
-the evaluation harness and baseline table exist, new numbers cannot be compared
-to the baseline.
+gate exists because the original training images were overwritten. The training
+manifest (E0.1), evaluation harness (E0.2), and frozen two-checkpoint baseline
+(E0.3) now exist, so new numbers can be compared to a recorded baseline; the
+remaining gate work is the contract tests (E0.4) and the leakage audit (E0.5).
 
 ### Experiment format
 
@@ -171,6 +172,11 @@ output: `reports/baseline/best_audio_spoof_model_unweighted/`.
 
 ### E0.3 Freeze the baseline
 
+**Status: complete (2026-11-13).** Report:
+[`reports/phase0/E0.3/README.md`](reports/phase0/E0.3/README.md). Frozen table:
+[`reports/baseline/README.md`](reports/baseline/README.md). Audit:
+`reports/baseline/freeze_report.json`.
+
 - **Question:** How do the unweighted and weighted first-iteration checkpoints
   compare under the same harness?
 - **Method:** Evaluate both checkpoints on dev and eval. Confirm checkpoint
@@ -181,6 +187,18 @@ output: `reports/baseline/best_audio_spoof_model_unweighted/`.
   a pre-registered tolerance (suggested: +/-1.0 absolute EER point).
 - **Artifact:** `reports/baseline/README.md` with the frozen baseline table and
   the exact commands used.
+- **Result:** Both checkpoints load strictly (124/124 keys remapped, zero
+  missing/unexpected, 11,242,305 parameters, 65,793 head parameters). Dev
+  (A01–A06, 24,844 clips, 2,548/22,296) and eval (A07–A19, 71,237 clips,
+  7,355/63,882), threshold-free: unweighted dev EER 6.16% / AUC 0.9860, eval
+  EER 11.50% / AUC 0.9527; weighted dev EER 5.42% / AUC 0.9881, eval EER 11.13%
+  / AUC 0.9558. At `0.5`, weighting cuts eval FPR from 16.55% to 9.42% but lowers
+  spoof recall from 90.99% to 87.76%. The second full run reproduced every EER
+  and AUC at exactly zero difference and every score CSV byte-for-byte. Head
+  control on 1,000 dev clips (500/500): trained AUC 0.9994 vs reinitialised AUC
+  0.5689 (unweighted) and 0.5590 (weighted); both pass the pre-registered gate.
+  Dev is labelled a model-selection split because the notebook used it for early
+  stopping; eval is the clean estimate.
 
 ### E0.4 Preprocessing and model-load contract tests
 
@@ -200,9 +218,13 @@ output: `reports/baseline/best_audio_spoof_model_unweighted/`.
 - **Method:** Check protocol row alignment, duplicate files, speaker overlap
   between train/dev/eval, and whether any dev/eval clip appears in the training
   manifest. Confirm the 838 `_A` enrollment files are excluded from CM scoring.
+  Distinguish documented dev reuse from eval leakage: E0.3 selected the
+  operating threshold on dev and the original training loop used full dev for
+  early stopping, so dev is a model-selection split. The audit must confirm that
+  **no eval clip** entered training, early stopping, or threshold selection.
 - **Success criterion:** A written audit states exactly which files are used for
-  each split and confirms no dev/eval leakage into training or threshold
-  selection.
+  each split, documents the dev reuse, and confirms no eval leakage into training
+  or threshold selection.
 - **Artifact:** `reports/audit/data_audit.md` with counts and known exclusions.
 
 ### Phase 0 exit criteria
@@ -213,7 +235,8 @@ Phase 0 is complete only when all of the following are true:
       (E0.1, 2026-11-07.)
 - [x] The evaluation harness runs on dev and eval from one documented command.
       (E0.2, 2026-11-09: `make evaluate`.)
-- [ ] Both checkpoints have a frozen baseline table with per-attack EER.
+- [x] Both checkpoints have a frozen baseline table with per-attack EER.
+      (E0.3, 2026-11-13: `reports/baseline/README.md`.)
 - [ ] Preprocessing and model-loading tests pass.
 - [ ] The data audit finds no train/dev/eval leakage.
 

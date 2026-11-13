@@ -5,12 +5,12 @@ Logical Access (LA). The current baseline renders a 4-second clip as a
 magma-coloured mel spectrogram and classifies it with a frozen ImageNet-pretrained
 ResNet18 plus a small linear head.
 
-> **Status (2026-11-09):** Phase 0, E0.1 and E0.2 complete. The 10,080-clip
+> **Status (2026-11-13):** Phase 0, E0.1–E0.3 complete. The 10,080-clip
 > training subset is reconstructed at `data/derived/train_seed42/` with manifest
 > `manifests/train_seed42.csv`. The evaluation harness is in
-> `src/spoof_detection/evaluate.py`, with the first full baseline under
-> `reports/baseline/best_audio_spoof_model_unweighted/`. The frozen baseline
-> table (E0.3), contract tests (E0.4), and leakage audit (E0.5) are still open.
+> `src/spoof_detection/evaluate.py`, and the frozen two-checkpoint baseline is
+> in [`reports/baseline/README.md`](reports/baseline/README.md). Contract tests
+> (E0.4) and the leakage audit (E0.5) remain open.
 
 The sigmoid output is a **score, not a calibrated probability**. The demo's
 "confidence" is `max(p, 1 - p)` and must not be read as the probability that a
@@ -185,22 +185,31 @@ use it, cite:
 
 ## Baseline evaluation
 
-Score the unweighted first-iteration checkpoint on the full dev and eval splits:
+Score both first-iteration checkpoints on the full dev and eval splits:
 
 ```bash
 make evaluate
 # equivalent:
 uv run python -m spoof_detection.evaluate \
   --checkpoint Models/Itteration1/best_audio_spoof_model_unweighted.pth \
-  --asvspoof dev eval --source image --output-root reports/baseline
+  --checkpoint Models/Itteration1/best_audio_spoof_model_weighted.pth \
+  --asvspoof dev eval --source image --output-root reports/baseline \
+  --experiment-id E0.3 --title "Frozen two-checkpoint baseline"
 ```
 
 The command writes `metrics.json`, per-clip `scores_<split>.csv`, and
-`summary.md` under `reports/baseline/<checkpoint-stem>/`. It verifies the
+`summary.md` under `reports/baseline/<checkpoint-stem>/`. It verifies each
 checkpoint key mapping with zero missing/unexpected keys, selects only the dev
-EER threshold, and never tunes on eval. See
-[`reports/phase0/E0.2/README.md`](reports/phase0/E0.2/README.md) for the full
-metric contract and first results.
+EER threshold, and never tunes on eval. The frozen table and exact numbers are
+in [`reports/baseline/README.md`](reports/baseline/README.md); the experiment
+report is [`reports/phase0/E0.3/README.md`](reports/phase0/E0.3/README.md).
+
+`make evaluate-rerun` writes a second full run to `/tmp/opencode/e0.3-rerun`, and
+`make freeze-baseline` runs both plus `scripts/freeze_baseline.py`, which audits
+the manifest hash, metric contract, run-to-run EER tolerance, and a
+trained-vs-reinitialised head control. See
+[`reports/phase0/E0.2/README.md`](reports/phase0/E0.2/README.md) for the harness
+design and the unweighted-only first results.
 
 To score an external corpus, provide a labelled CSV with a `label` column and a
 path column (`image_path`/`img_path` for `--source image`, or
@@ -247,7 +256,9 @@ The dataset validator tests use a miniature synthetic tree and do not require th
   bonafide controls; it measures neither specificity nor EER.
 - The evaluation harness currently reports EER, AUC, threshold metrics, and
   diagnostics but not min t-DCF, confidence intervals, or significance tests.
-- Only the unweighted checkpoint has a baseline run so far; the frozen two-model
-  table is E0.3.
+- Both first-iteration checkpoints now have a frozen two-model baseline; the
+  weighted model improves threshold-free EER only slightly and mainly shifts the
+  operating point. Dev was used for early stopping, so it is a model-selection
+  split rather than a clean holdout.
 - The current model is a frozen ImageNet backbone with a small linear head. It is
   a research probe, not a production anti-spoofing system.

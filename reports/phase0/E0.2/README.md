@@ -11,6 +11,14 @@
 **Training manifest for the checkpoint:** `manifests/train_seed42.csv`
 (SHA-256 `22f98abdf3392e04f7df3632809f81d033d5687773946cd103f5066846ed195e`)
 
+> **Refresh note (2026-11-13):** E0.3 refreshed the unweighted output directory
+> in place at commit `67a8110`. The `scores_dev.csv` and `scores_eval.csv` files
+> are byte-identical to the E0.2 run, and every metric below is unchanged.
+> `metrics.json` and `summary.md` now carry E0.3 experiment metadata plus the
+> checkpoint head fingerprint, final head bias, and batch-norm step counters.
+> See [`reports/phase0/E0.3/README.md`](../E0.3/README.md) for the frozen
+> two-checkpoint table.
+
 ## Metric contract
 
 | Split | Attack subset | Threshold(s) | Samples | Bonafide / spoof |

@@ -6,13 +6,14 @@ Read this file before changing code, data, models, or experiment claims. For the
 prioritized research plan, read [`ROADMAP.md`](./ROADMAP.md). This file records
 what is true today; the roadmap records what we intend to test next.
 
-Last verified: 2026-11-09. Notebook MCP status re-verified 2026-11-13.
+Last verified: 2026-11-13. Notebook MCP status re-verified 2026-11-13.
 
-**Current status (2026-11-09):** E0.1 and E0.2 complete. The 10,080-clip training
-subset is reconstructed at `data/derived/train_seed42/` with manifest
+**Current status (2026-11-13):** E0.1, E0.2, and E0.3 complete. The 10,080-clip
+training subset is reconstructed at `data/derived/train_seed42/` with manifest
 `manifests/train_seed42.csv`. The evaluation harness scores full dev/eval from
-one command and has produced the unweighted baseline under
-`reports/baseline/`. Phase 0 is still open: E0.3–E0.5 are pending.
+one command, and both first-iteration checkpoints now have a frozen,
+reproducibility-audited baseline under `reports/baseline/`. Phase 0 is still
+open: E0.4 (contract tests) and E0.5 (data and leakage audit) are pending.
 
 ---
 
@@ -49,7 +50,8 @@ was trained on.
 1. Reconstruct the exact 10,080-clip training subset and make the baseline
    reproducible from source audio. **Complete (E0.1).**
 2. Establish a baseline evaluation harness with per-attack, per-speaker, and
-   threshold-aware reporting.
+   threshold-aware reporting, and freeze the two-checkpoint baseline table.
+   **Complete (E0.2/E0.3).**
 3. Explain why the frozen ImageNet backbone works: spectral content, colormap
    statistics, or dataset shortcuts.
 4. Measure the capability envelope under channel, codec, language, speaker, and
@@ -91,21 +93,21 @@ was trained on.
 | `data/dataset_img/` | Exported spectrogram PNGs and metadata for train/dev/eval | Existing; do not overwrite |
 | `data/derived/train_seed42/` | Reconstructed 10,080-image first-iteration training set (E0.1) | New; 257 MB; gitignored |
 | `manifests/` | Data manifests and metadata | `train_seed42.csv` + `.meta.json`; `asvspoof2019_la.meta.json` (dataset verification) |
-| `reports/` | Experiment reports | `phase0/E0.1/`, `phase0/E0.2/` |
-| `scripts/` | Thin CLI entry points | `reproduce_train_seed42.py`, `verify_asvspoof2019_la.py` |
+| `reports/` | Experiment reports | `phase0/E0.1/`, `phase0/E0.2/`, `phase0/E0.3/` |
+| `scripts/` | Thin CLI entry points | `reproduce_train_seed42.py`, `verify_asvspoof2019_la.py`, `freeze_baseline.py` |
 | `tests/test1/` | Eight ElevenLabs clips plus `test1-results.csv` | Existing; do not overwrite |
-| `tests/` | Automated tests | E0.1 reconstruction, dataset validation, metrics, model loading, evaluation |
-| `src/spoof_detection/` | Reusable package code | `protocol.py`, `sampling.py`, `preprocess.py`, `dataset.py`, `model.py`, `metrics.py`, `evaluate.py` |
-| `reports/baseline/` | Per-checkpoint `metrics.json`, per-clip scores, and `summary.md` | E0.2 unweighted dev+eval baseline |
+| `tests/` | Automated tests | E0.1 reconstruction, dataset validation, metrics, model loading, evaluation, baseline audit |
+| `src/spoof_detection/` | Reusable package code | `protocol.py`, `sampling.py`, `preprocess.py`, `dataset.py`, `model.py`, `metrics.py`, `evaluate.py`, `baseline.py` |
+| `reports/baseline/` | Frozen two-checkpoint `metrics.json`, per-clip scores, `summary.md`, and `freeze_report.json` | E0.3 two-checkpoint dev+eval baseline |
 | `pyproject.toml`, `uv.lock` | Project metadata and locked dependencies | Source of truth for dependencies |
-| `makefile` | `make app`, `make verify-data`, `make evaluate` | Working |
+| `makefile` | `make app`, `make verify-data`, `make evaluate`, `make evaluate-rerun`, `make freeze-baseline` | Working |
 | `README.md` | Setup, data acquisition, demo, and limitations | Written; keep commands in sync |
 
 ---
 
 ## 4. Verified current state
 
-Everything in this section was checked against the repository on 2026-11-07,
+Everything in this section was checked against the repository on 2026-11-13,
 except where explicitly labelled "inferred" or "unverified".
 
 ### 4.1 Data inventory
@@ -209,7 +211,7 @@ Checkpoints:
 | Path | Weighting | Notes |
 |---|---|---|
 | `Models/Itteration1/best_audio_spoof_model_unweighted.pth` | No class weights | First-iteration unweighted model |
-| `Models/Itteration1/best_audio_spoof_model_weighted.pth` | Class weight 3 on bonafide | First-iteration weighted model |
+| `Models/Itteration1/best_audio_spoof_model_weighted.pth` | Spoof `pos_weight` 0.344 (≈2.91× bonafide) | First-iteration weighted model |
 | `best_audio_spoof_model_unweighted.pth` | No class weights | Root duplicate loaded by `app.py` |
 
 The checkpoints use a `network.` key prefix; `app.py` remaps `network.` to
@@ -218,11 +220,29 @@ broken key mapping can silently leave parts of the model randomly initialized.
 Do not trust a "loaded successfully" print without checking missing/unexpected
 keys.
 
-Training schedule is **inferred**, not documented: `num_batches_tracked`
-implies roughly 13 epochs for the unweighted run and 22 for the weighted run
-assuming batch size 32. Treat this as approximate until the training notebook is
-inspected and the schedule confirmed. The notebook is now readable via the
-python-notebook MCP (see G1), but the schedule has not been re-derived yet.
+Training configuration was read from `2_model.ipynb` via the python-notebook MCP
+on 2026-11-13:
+
+- Backbone frozen; head
+  `Linear(512, 128) -> ReLU -> Dropout(0.5) -> Linear(128, 1)`.
+- `BCEWithLogitsLoss`; Adam with `lr=1e-3`; batch size 32; maximum 20 epochs;
+  early stopping with patience 5 on full dev; no augmentation; no recorded seed.
+- The weighted run applies `pos_weight=2580/7500=0.344` to the spoof class,
+  i.e. roughly 2.91x the bonafide weight.
+
+Exact schedules are still **not reproducible**. The unweighted training cell and
+output are missing from the notebook. `num_batches_tracked` is 4,095 steps for
+the unweighted checkpoint (13.0 epochs at 315 steps/epoch) and 6,930 for the
+weighted checkpoint (22.0 epochs), but the visible loop has a 20-epoch maximum.
+The weighted checkpoint therefore came from a re-executed or unrecorded run. Do
+not claim training can be replayed from the committed notebook.
+
+All four checkpoint facts below were verified by the E0.3 strict-load audit:
+124 state-dict keys, 124 remapped, zero missing/unexpected keys, 11,242,305
+parameters, 65,793 head parameters. The root
+`best_audio_spoof_model_unweighted.pth` is byte-identical to the `Models`
+unweighted copy. Each checkpoint also has a recorded head-state SHA-256, final
+head bias, and batch-norm counters; see `reports/baseline/freeze_report.json`.
 
 ### 4.4 Training-subset provenance (E0.1, complete)
 
@@ -324,37 +344,61 @@ Verified locally:
 Use the project virtual environment at `.venv/` or `uv run`. Do not install
 packages globally.
 
-### 4.8 Baseline evaluation (E0.2)
+### 4.8 Baseline evaluation (E0.2) and frozen baseline (E0.3)
 
 `src/spoof_detection/evaluate.py` is the batch evaluation entry point. It loads a
 checkpoint through `model.load_model_from_checkpoint`, which remaps `network.*`
 to `backbone.*` and raises unless the missing and unexpected key lists are both
 empty. It reads either the stored PNGs (`--source image`, default) or re-renders
 source FLACs through the verified preprocessing chain (`--source audio`), and it
-writes `metrics.json`, `scores_<split>.csv`, and `summary.md`.
+writes `metrics.json`, `scores_<split>.csv`, and `summary.md` per checkpoint.
 
-Verified results for the unweighted checkpoint, image input, full splits:
+**Frozen E0.3 baseline** (commit `67a81104592090857ffd8b85de87edbc4ade9e07`,
+manifest SHA-256
+`22f98abdf3392e04f7df3632809f81d033d5687773946cd103f5066846ed195e`,
+image input, full splits):
 
-| Split | Attack subset | Samples (bonafide/spoof) | EER | AUC |
-|---|---|---|---:|---:|
-| dev | A01–A06 | 24,844 (2,548 / 22,296) | 6.16% | 0.9860 |
-| eval | A07–A19 | 71,237 (7,355 / 63,882) | 11.50% | 0.9527 |
+| Checkpoint | Split | Attack subset | Threshold | Samples (bonafide/spoof) | EER | AUC |
+|---|---|---|---|---:|---:|---:|
+| unweighted | dev | A01–A06 | threshold-free | 24,844 (2,548 / 22,296) | 6.16% | 0.9860 |
+| unweighted | eval | A07–A19 | threshold-free | 71,237 (7,355 / 63,882) | 11.50% | 0.9527 |
+| weighted | dev | A01–A06 | threshold-free | 24,844 (2,548 / 22,296) | 5.42% | 0.9881 |
+| weighted | eval | A07–A19 | threshold-free | 71,237 (7,355 / 63,882) | 11.13% | 0.9558 |
 
-Eval per-attack EER is 1.04%–6.98% for A07–A16, 36.24% for A17, and 18.30% for
-A18 and A19. The dev EER threshold is `0.839741`; transferred unchanged to eval
-it gives 5.02% FPR and 82.55% spoof recall. At the fixed `0.5` threshold, eval
-gives 16.55% FPR and 90.99% spoof recall.
+The dev EER thresholds are `0.839741` (unweighted) and `0.752020` (weighted),
+selected per checkpoint on dev only. Transferred unchanged to eval they give
+5.02% FPR / 82.55% spoof recall (unweighted) and 4.68% / 82.60% (weighted). At
+the fixed `0.5` threshold, unweighted eval gives 16.55% FPR / 90.99% spoof
+recall; weighted gives 9.42% / 87.76%, so weighting mainly shifts the operating
+point rather than improving threshold-free separation.
 
-Two full runs produced byte-identical `scores_dev.csv` and `scores_eval.csv` and
-identical metric values. On a 100-clip-per-split smoke subset, image and audio
-inputs produced bit-identical logits and scores. Full report:
-`reports/phase0/E0.2/README.md`. Raw outputs:
-`reports/baseline/best_audio_spoof_model_unweighted/`.
+Eval per-attack EER is 1.04%–6.98% for A07–A16, 36.24% (unweighted) / 34.67%
+(weighted) for A17, and 18–19% for A18/A19. Two full runs produced byte-identical
+score CSVs and identical EER/AUC values for both checkpoints. On a
+100-clip-per-split smoke subset, image and audio inputs produced bit-identical
+logits and scores.
+
+**Dev is a model-selection split, not a clean holdout:** the notebook used full
+dev for early stopping, and E0.3 selects the operating threshold on dev. Eval is
+the clean estimate. No eval data is used for training, early stopping, or
+threshold selection.
+
+The E0.3 audit (`scripts/freeze_baseline.py`, output
+`reports/baseline/freeze_report.json`) verifies the manifest hash, metric
+contract, run-to-run tolerance (±0.01 EER fraction), and a trained-vs-random head
+control on a deterministic 1,000-clip dev subset (500/500). Trained AUC is
+0.9994 for both checkpoints; a reinitialised head gets 0.5689 / 0.5590, so the
+head is trained rather than random. The notebook's own eval at `0.5` agrees on
+accuracy to four decimals but differs by 2 false positives (unweighted) and 1
+false negative (weighted); the harness counts are the frozen values. Full
+reports: `reports/baseline/README.md`,
+`reports/phase0/E0.3/README.md`, `reports/phase0/E0.2/README.md`.
 
 The harness supports a generic labelled CSV via `--manifest`, a deterministic
-class-stratified `--limit` for smoke tests, and `--threshold-from` to reuse a
-previous dev threshold for eval-only or manifest runs. Only the dev EER
-threshold is selected on data; eval is never used for threshold selection.
+class-stratified `--limit` for smoke tests, `--threshold-from` to reuse a
+previous dev threshold for eval-only or manifest runs, and
+`--experiment-id`/`--title` to label output metadata. Only the dev EER threshold
+is selected on data; eval is never used for threshold selection.
 
 ---
 
@@ -548,12 +592,17 @@ uv run python scripts/verify_asvspoof2019_la.py --archive data/downloads/LA.zip
 # Reconstruct and verify the E0.1 training subset (~3 min, 257 MB)
 uv run python scripts/reproduce_train_seed42.py
 
-# Score the unweighted checkpoint on full dev + eval (~2.5 min on the RTX 3050)
+# Score both checkpoints on full dev + eval (~5 min on the RTX 3050)
 make evaluate
-# or directly:
-uv run python -m spoof_detection.evaluate \
-  --checkpoint Models/Itteration1/best_audio_spoof_model_unweighted.pth \
-  --asvspoof dev eval --source image --output-root reports/baseline
+
+# Second full run for the E0.3 reproducibility check
+make evaluate-rerun
+
+# Audit manifest, contract, run-to-run tolerance, and head control
+uv run python scripts/freeze_baseline.py
+
+# All three of the above in sequence
+make freeze-baseline
 
 # Smoke-test the harness on a deterministic 100-clip-per-split subset
 uv run python -m spoof_detection.evaluate \
@@ -561,29 +610,31 @@ uv run python -m spoof_detection.evaluate \
   --asvspoof dev eval --source image --limit 100 \
   --output-dir /tmp/opencode/e0.2-smoke
 
-# Run the current unit tests (E0.1, metrics, model loading, evaluation)
+# Run the current unit tests (E0.1, metrics, model loading, evaluation, baseline)
 uv run python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-There is still no CI pipeline; that and the remaining Phase 0 items (E0.3–E0.5)
+There is still no CI pipeline; that and the remaining Phase 0 items (E0.4–E0.5)
 are open.
 
 ---
 
 ## 8. Known gaps and open questions
 
-1. **Training code not yet inspected.** Notebook access is restored (see G1), but
-   the original training code, exact hyperparameters, and augmentation choices
-   have not been re-read from the notebooks yet. The schedule in section 4.3
-   remains inferred.
+1. **Training provenance is incomplete.** `2_model.ipynb` confirms the
+   architecture, `BCEWithLogitsLoss`, Adam `lr=1e-3`, batch size 32, 20-epoch
+   maximum, early stopping on dev, weighted `pos_weight`, no augmentation, and no
+   recorded seed. However, the unweighted training cell/output is missing, and
+   the weighted batch-norm counter (6,930 steps ≈ 22 epochs) exceeds the visible
+   20-epoch loop. Exact schedules are not reproducible; see section 4.3.
 2. **Regenerated images, not original PNGs.** E0.1 rebuilt the subset at
    `data/derived/train_seed42/` and verified 10,080/10,080 pixel parity against
    the full-split export. Parity with the lost original PNGs cannot be proven.
    Use the manifest for all training.
-3. **Evaluation harness exists but is incomplete for a benchmark.** E0.2 computes
-   EER, AUC, threshold metrics, per-attack and per-speaker breakdowns on dev/eval
-   (`src/spoof_detection/evaluate.py`). Min t-DCF, confidence intervals, and
-   significance tests are not implemented.
+3. **Evaluation harness exists but is incomplete for a benchmark.** E0.2/E0.3
+   compute EER, AUC, threshold metrics, per-attack and per-speaker breakdowns on
+   dev/eval (`src/spoof_detection/evaluate.py`). Min t-DCF, confidence intervals,
+   and significance tests are not implemented.
 4. **No bonafide controls in the external set.** Specificity and calibration are
    unmeasured outside ASVspoof.
 5. **Uncalibrated scores.** The app's confidence is not meaningful as a
@@ -592,8 +643,11 @@ are open.
    strictly, but `app.py` still remaps keys and loads with `strict=False`.
 7. **App hardening.** No upload size limit, CORS is fully open, and all uploads
    are written with a `.flac` suffix.
-8. **Dataset leakage unknown.** Confirm that dev/eval were never used for
-   training, early stopping, or threshold selection.
+8. **Leakage audit still open (E0.5).** Dev was used by the original training loop
+   for early stopping and by E0.3 for threshold selection, so it is a
+   model-selection split, not a clean holdout. There is no evidence that eval
+   entered training, early stopping, or threshold selection, but the formal
+   row-level and speaker-overlap audit has not been written yet.
 9. **Class imbalance.** Training was 2,580 bonafide vs 7,500 spoof (about 1:2.9).
    Accuracy alone is misleading; report per-class recall and EER.
 10. **Archive artifact.** `data/archive.zip` was deleted on 2026-11-07 after
@@ -601,8 +655,9 @@ are open.
     `manifests/asvspoof2019_la.meta.json`.
 11. **Project scaffolding is mostly complete.** `src/spoof_detection/` has
     protocol, sampling, preprocessing, dataset-validation, model-loading,
-    metrics, and evaluation modules with unit tests. `README.md` documents setup,
-    data acquisition, and evaluation. There is still no CI pipeline.
+    metrics, evaluation, and baseline-audit modules with unit tests. `README.md`
+    documents setup, data acquisition, and evaluation. There is still no CI
+    pipeline.
 
 ---
 
@@ -618,8 +673,11 @@ For any new task:
    `scripts/verify_asvspoof2019_la.py` if counts or paths look wrong.
 4. If the task involves a metric, write down the split, attack subset,
    threshold, and sample count **before** running the experiment.
-5. If the task involves a new model, create `Models/IterationN/MODELS.md` first.
-6. If the task requires notebook access, use the python-notebook MCP tools under
+5. For a baseline comparison, use `reports/baseline/README.md` and keep the
+   preprocessing contract, training manifest, and split definitions identical.
+   Run `make freeze-baseline` after any evaluation or checkpoint-loading change.
+6. If the task involves a new model, create `Models/IterationN/MODELS.md` first.
+7. If the task requires notebook access, use the python-notebook MCP tools under
    the rules in G1; do not parse notebook JSON directly. If a tool errors, report
    it rather than working around it.
 

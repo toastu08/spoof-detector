@@ -1,0 +1,238 @@
+{
+  "experiment": "E0.3",
+  "title": "Frozen two-checkpoint baseline audit",
+  "generated_at_utc": "2026-11-13T21:47:13.889630+00:00",
+  "baseline_root": "reports/baseline",
+  "rerun_root": "/tmp/opencode/e0.3-rerun",
+  "training_manifest": {
+    "path": "manifests/train_seed42.csv",
+    "sha256": "22f98abdf3392e04f7df3632809f81d033d5687773946cd103f5066846ed195e",
+    "expected_sha256": "22f98abdf3392e04f7df3632809f81d033d5687773946cd103f5066846ed195e",
+    "rows": 10080,
+    "expected_rows": 10080,
+    "counts": {
+      "bonafide": 2580,
+      "spoof": 7500
+    },
+    "expected_counts": {
+      "bonafide": 2580,
+      "spoof": 7500
+    },
+    "passed": true,
+    "failures": []
+  },
+  "dev_control_subset": {
+    "split": "dev",
+    "attack_subset": "A01-A06",
+    "provenance": {
+      "dataset": "ASVspoof 2019 LA",
+      "split": "dev",
+      "source": "image",
+      "data_root": "data/LA",
+      "protocol_path": "data/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.dev.trl.txt",
+      "protocol_sha256": "2fedaebf1ba3ae1a9bb7d3ec916804ac237b4eee063a27fa92e6549f03d129c7",
+      "image_root": "data/dataset_img",
+      "metadata_path": "data/dataset_img/dev/metadata_dev.csv",
+      "metadata_sha256": "6097d85f173bc0e852579f94c5c6551a12267e008feb1027f3ec576e105b3b36"
+    },
+    "n": 1000,
+    "n_bonafide": 500,
+    "n_spoof": 500,
+    "selection": "deterministic head-stratified: first 500 records from each class, sorted by source row"
+  },
+  "thresholds": {
+    "max_eer_delta": 0.01,
+    "max_eer_delta_units": "absolute EER fraction (0.01 = 1 point)",
+    "min_trained_auc": 0.9,
+    "max_random_head_auc": 0.7,
+    "min_head_gap": 0.2,
+    "selected_on": "dev"
+  },
+  "environment": {
+    "python": "3.14.8",
+    "platform": "Linux-7.2.9-201.fc44.x86_64-x86_64-with-glibc2.43",
+    "torch": "2.15.0+cu132",
+    "torchvision": "0.29.2+cu132",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "librosa": "1.0.0",
+    "matplotlib": "3.11.2",
+    "cuda_available": true,
+    "cudnn_version": 92600,
+    "device": "cuda",
+    "device_name": "NVIDIA GeForce RTX 3050 Laptop GPU"
+  },
+  "git": {
+    "commit": "67a81104592090857ffd8b85de87edbc4ade9e07",
+    "dirty": true,
+    "status_porcelain": [
+      "M reports/baseline/best_audio_spoof_model_unweighted/metrics.json",
+      " M reports/baseline/best_audio_spoof_model_unweighted/summary.md",
+      "?? reports/baseline/best_audio_spoof_model_weighted/"
+    ]
+  },
+  "checkpoints": [
+    {
+      "path": "Models/Itteration1/best_audio_spoof_model_unweighted.pth",
+      "stem": "best_audio_spoof_model_unweighted",
+      "audit": {
+        "path": "Models/Itteration1/best_audio_spoof_model_unweighted.pth",
+        "sha256": "abf8d9c9169d363bf9e9076b61689056a78d814c95de9634aea9acf96afc54d8",
+        "state_dict_keys": 124,
+        "remapped_keys": 124,
+        "missing_keys": [],
+        "unexpected_keys": [],
+        "total_parameters": 11242305,
+        "backbone_parameters": 11176512,
+        "head_parameters": 65793,
+        "head_state_sha256": "de07fcb49e82ce28add233e10753f8885bfb1a11e0177cb8b89bcb6fc11685d4",
+        "head_last_bias": -0.23416991531848907,
+        "head_last_bias_within_fresh_init_bound": false,
+        "fresh_init_bias_bound": 0.08838834764831843,
+        "batch_norm_steps": [
+          4095
+        ],
+        "inferred_epochs_at_batch32": [
+          13.0
+        ],
+        "parameter_counts_match": true
+      },
+      "baseline_metrics_path": "reports/baseline/best_audio_spoof_model_unweighted/metrics.json",
+      "rerun_metrics_path": "/tmp/opencode/e0.3-rerun/best_audio_spoof_model_unweighted/metrics.json",
+      "contract_failures": [],
+      "comparison": {
+        "max_eer_delta": 0.01,
+        "dev_eer_threshold_reference": 0.8397408723831177,
+        "dev_eer_threshold_rerun": 0.8397408723831177,
+        "dev_eer_threshold_delta": 0.0,
+        "splits": {
+          "dev": {
+            "eer_reference": 0.06155390242542326,
+            "eer_rerun": 0.06155390242542326,
+            "eer_delta": 0.0,
+            "auc_reference": 0.985992455792452,
+            "auc_rerun": 0.985992455792452,
+            "auc_delta": 0.0,
+            "sample_counts_match": true,
+            "attack_subset_match": true,
+            "passed": true
+          },
+          "eval": {
+            "eer_reference": 0.11502418495045175,
+            "eer_rerun": 0.11502418495045175,
+            "eer_delta": 0.0,
+            "auc_reference": 0.9526950416376762,
+            "auc_rerun": 0.9526950416376762,
+            "auc_delta": 0.0,
+            "sample_counts_match": true,
+            "attack_subset_match": true,
+            "passed": true
+          }
+        },
+        "passed": true,
+        "failures": []
+      },
+      "head_control": {
+        "trained_auc": 0.999388,
+        "random_head_auc": 0.568948,
+        "auc_gap": 0.43044000000000004,
+        "min_trained_auc": 0.9,
+        "max_random_head_auc": 0.7,
+        "min_gap": 0.2,
+        "passed": true,
+        "failures": [],
+        "n": 1000,
+        "n_bonafide": 500,
+        "n_spoof": 500,
+        "selection": "deterministic head-stratified: first 500 records from each class, sorted by source row",
+        "seed": 0,
+        "trained_eer": 0.014,
+        "random_head_eer": 0.45
+      },
+      "passed": true,
+      "failures": []
+    },
+    {
+      "path": "Models/Itteration1/best_audio_spoof_model_weighted.pth",
+      "stem": "best_audio_spoof_model_weighted",
+      "audit": {
+        "path": "Models/Itteration1/best_audio_spoof_model_weighted.pth",
+        "sha256": "214e2c813c4f48602ddf124590daf20a008f18385a5339029736a6c16837eb93",
+        "state_dict_keys": 124,
+        "remapped_keys": 124,
+        "missing_keys": [],
+        "unexpected_keys": [],
+        "total_parameters": 11242305,
+        "backbone_parameters": 11176512,
+        "head_parameters": 65793,
+        "head_state_sha256": "48c383336ddd257763adbbf00c94bd0a9047f4597375b7dfa3f683cf9422382a",
+        "head_last_bias": -0.5001046657562256,
+        "head_last_bias_within_fresh_init_bound": false,
+        "fresh_init_bias_bound": 0.08838834764831843,
+        "batch_norm_steps": [
+          6930
+        ],
+        "inferred_epochs_at_batch32": [
+          22.0
+        ],
+        "parameter_counts_match": true
+      },
+      "baseline_metrics_path": "reports/baseline/best_audio_spoof_model_weighted/metrics.json",
+      "rerun_metrics_path": "/tmp/opencode/e0.3-rerun/best_audio_spoof_model_weighted/metrics.json",
+      "contract_failures": [],
+      "comparison": {
+        "max_eer_delta": 0.01,
+        "dev_eer_threshold_reference": 0.7520200610160828,
+        "dev_eer_threshold_rerun": 0.7520200610160828,
+        "dev_eer_threshold_delta": 0.0,
+        "splits": {
+          "dev": {
+            "eer_reference": 0.05417012379183685,
+            "eer_rerun": 0.05417012379183685,
+            "eer_delta": 0.0,
+            "auc_reference": 0.9881381705203403,
+            "auc_rerun": 0.9881381705203403,
+            "auc_delta": 0.0,
+            "sample_counts_match": true,
+            "attack_subset_match": true,
+            "passed": true
+          },
+          "eval": {
+            "eer_reference": 0.11134937012414395,
+            "eer_rerun": 0.11134937012414395,
+            "eer_delta": 0.0,
+            "auc_reference": 0.955754982136826,
+            "auc_rerun": 0.955754982136826,
+            "auc_delta": 0.0,
+            "sample_counts_match": true,
+            "attack_subset_match": true,
+            "passed": true
+          }
+        },
+        "passed": true,
+        "failures": []
+      },
+      "head_control": {
+        "trained_auc": 0.999372,
+        "random_head_auc": 0.558964,
+        "auc_gap": 0.440408,
+        "min_trained_auc": 0.9,
+        "max_random_head_auc": 0.7,
+        "min_gap": 0.2,
+        "passed": true,
+        "failures": [],
+        "n": 1000,
+        "n_bonafide": 500,
+        "n_spoof": 500,
+        "selection": "deterministic head-stratified: first 500 records from each class, sorted by source row",
+        "seed": 0,
+        "trained_eer": 0.014,
+        "random_head_eer": 0.462
+      },
+      "passed": true,
+      "failures": []
+    }
+  ],
+  "passed": true,
+  "failures": []
+}

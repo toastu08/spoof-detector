@@ -1,8 +1,8 @@
 {
-  "experiment": "E0.2",
-  "title": "Baseline evaluation harness",
-  "generated_at_utc": "2026-11-09T19:54:29.202924+00:00",
-  "command": "'/home/toastu/Research/Spoof Detection/.venv/bin/python' -m spoof_detection.evaluate --checkpoint Models/Itteration1/best_audio_spoof_model_unweighted.pth --asvspoof dev eval --source image --output-root reports/baseline --device cuda --batch-size 64 --num-workers 4 --no-progress",
+  "experiment": "E0.3",
+  "title": "Frozen two-checkpoint baseline",
+  "generated_at_utc": "2026-11-13T21:39:04.941407+00:00",
+  "command": "'/home/toastu/Research/Spoof Detection/.venv/bin/python' -m spoof_detection.evaluate --checkpoint Models/Itteration1/best_audio_spoof_model_unweighted.pth --checkpoint Models/Itteration1/best_audio_spoof_model_weighted.pth --asvspoof dev eval --source image --output-root reports/baseline --experiment-id E0.3 --title 'Frozen two-checkpoint baseline'",
   "checkpoint": {
     "path": "Models/Itteration1/best_audio_spoof_model_unweighted.pth",
     "sha256": "abf8d9c9169d363bf9e9076b61689056a78d814c95de9634aea9acf96afc54d8",
@@ -12,7 +12,12 @@
     "unexpected_keys": [],
     "total_parameters": 11242305,
     "backbone_parameters": 11176512,
-    "head_parameters": 65793
+    "head_parameters": 65793,
+    "head_state_sha256": "de07fcb49e82ce28add233e10753f8885bfb1a11e0177cb8b89bcb6fc11685d4",
+    "head_last_bias": -0.23416991531848907,
+    "batch_norm_steps": [
+      4095
+    ]
   },
   "inference": {
     "source": "image",
@@ -70,27 +75,9 @@
     "device_name": "NVIDIA GeForce RTX 3050 Laptop GPU"
   },
   "git": {
-    "commit": "4bb5941f9968d1e6b9b224c4c210d4792c2e703c",
-    "dirty": true,
-    "status_porcelain": [
-      "M 2_model.ipynb",
-      " M AGENTS.md",
-      " M README.md",
-      " M ROADMAP.md",
-      " M makefile",
-      " M pyproject.toml",
-      " M src/spoof_detection/preprocess.py",
-      " M src/spoof_detection/protocol.py",
-      "?? Bibliography/",
-      "?? reports/baseline/",
-      "?? reports/phase0/E0.2/",
-      "?? src/spoof_detection/evaluate.py",
-      "?? src/spoof_detection/metrics.py",
-      "?? src/spoof_detection/model.py",
-      "?? tests/test_evaluate.py",
-      "?? tests/test_metrics.py",
-      "?? tests/test_model_loading.py"
-    ]
+    "commit": "67a81104592090857ffd8b85de87edbc4ade9e07",
+    "dirty": false,
+    "status_porcelain": []
   },
   "splits": {
     "dev": {
