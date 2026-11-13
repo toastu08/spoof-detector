@@ -6,7 +6,7 @@ Read this file before changing code, data, models, or experiment claims. For the
 prioritized research plan, read [`ROADMAP.md`](./ROADMAP.md). This file records
 what is true today; the roadmap records what we intend to test next.
 
-Last verified: 2026-11-09. Notebook MCP status re-verified 2026-11-07.
+Last verified: 2026-11-09. Notebook MCP status re-verified 2026-11-13.
 
 **Current status (2026-11-09):** E0.1 and E0.2 complete. The 10,080-clip training
 subset is reconstructed at `data/derived/train_seed42/` with manifest
@@ -364,30 +364,44 @@ These are not suggestions. If a task conflicts with one of them, stop and ask.
 
 ### G1. Notebook access goes through the python-notebook MCP
 
-The python-notebook MCP server is fixed and `.ipynb` files can now be accessed.
-Use its tools (`read_notebook`, `read_cell`, `read_cell_output`,
-`read_notebook_outputs`, `create_notebook`, `add_cell`, `edit_cell`) rather than
-reading notebook JSON with Python, `jq`, `grep`, or `git show`.
+The python-notebook MCP server is fully working as of 2026-11-13; all eight tools
+are usable. Use its tools (`initialize_workspace`, `list_notebooks`,
+`read_notebook`, `read_cell`, `read_cell_output`, `read_notebook_outputs`,
+`create_notebook`, `add_cell`, `edit_cell`) rather than reading notebook JSON
+with Python, `jq`, `grep`, or `git show`.
 
-Verified working on 2026-11-07:
+Verified working on 2026-11-13:
 
 | Tool | Status |
 |---|---|
+| `initialize_workspace` | Working; must be the first call in a session |
+| `list_notebooks` | Working; returns absolute paths, includes `.ipynb_checkpoints/` copies |
 | `read_notebook`, `read_cell`, `read_cell_output`, `read_notebook_outputs` | Working |
 | `create_notebook`, `add_cell`, `edit_cell` | Working, but paths must stay inside the workspace root |
-| `initialize_workspace` | Fails with `'map' object has no attribute 'close'` |
-| `list_notebooks` | Fails with `'map' object has no attribute 'close'` |
 
-Do not call `initialize_workspace` or `list_notebooks` until those two errors are
-fixed; use `glob`/`shell` to list notebooks instead. If any other notebook tool
-fails, report the error instead of falling back to parsing notebook JSON.
+The historical `'map' object has no attribute 'close'` failure came from wrapping
+`Path.rglob()` (a generator) in `contextlib.closing()`; that wrapper has been
+removed, so `initialize_workspace` and `list_notebooks` both work.
 
 Behaviour notes:
 
+- **Call `initialize_workspace` first**, with the absolute repository path:
+  `initialize_workspace("/home/toastu/Research/Spoof Detection")`. Every other
+  tool refuses to run until it has been called, and relative paths are rejected.
+  Its return value already lists the notebooks found, so it doubles as a first
+  listing.
+- `list_notebooks(directory=".")` takes a workspace-relative subdirectory and
+  rejects paths that escape the workspace root (e.g. `"../.."`).
 - Write tools reject absolute paths (and `../` traversal) outside the repository
   root. Use workspace-relative paths.
 - `create_notebook` writes a markdown title cell at index 0 plus a code cell.
 - `edit_cell` replaces source text but does not change the cell's type.
+
+The server lives at `/home/toastu/python-notebook-mcp/server.py`, outside this
+repository. After editing it, restart OpenCode so the MCP server reloads: a
+still-running `server.py` process keeps the old code loaded and the same error
+will persist even though the file is fixed. If any other notebook tool fails,
+report the error instead of falling back to parsing notebook JSON.
 
 For training-subset provenance, reference `1.1_data_prep-train-old.ipynb` via the
 MCP; do not reproduce a full seed-42 join snippet in documentation or code unless

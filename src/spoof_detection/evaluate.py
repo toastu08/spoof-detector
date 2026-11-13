@@ -115,6 +115,8 @@ class EvaluationConfig:
     limit: int | None
     threshold_from: Path | None
     show_progress: bool
+    experiment_id: str
+    title: str
     command: str
 
 
@@ -722,8 +724,10 @@ def render_summary(metrics: dict[str, object]) -> str:
     checkpoint = metrics["checkpoint"]  # type: ignore[index]
     splits = metrics["splits"]  # type: ignore[index]
     lines: list[str] = [
-        f"# Baseline evaluation: `{Path(str(checkpoint['path'])).name}`",
+        f"# {metrics.get('title', 'Evaluation')}: "
+        f"`{Path(str(checkpoint['path'])).name}`",
         "",
+        f"Experiment: `{metrics.get('experiment', 'unlabelled')}`",
         f"Generated: `{metrics['generated_at_utc']}`",
         "",
         "## Metric contract",
@@ -850,6 +854,11 @@ def render_summary(metrics: dict[str, object]) -> str:
             f"({checkpoint['remapped_keys']} remapped)",
             f"- Missing keys: {checkpoint['missing_keys'] or 'none'}",
             f"- Unexpected keys: {checkpoint['unexpected_keys'] or 'none'}",
+            f"- Head state SHA-256: "
+            f"`{checkpoint.get('head_state_sha256', 'n/a')}`",
+            f"- Final head bias: {_fmt(checkpoint.get('head_last_bias'))}",
+            f"- Batch-norm steps: "
+            f"{checkpoint.get('batch_norm_steps', []) or 'none'}",
             "",
             "## Provenance",
             "",
@@ -947,6 +956,11 @@ def run_evaluation(config: EvaluationConfig) -> list[Path]:
     device = resolve_device(config.device)
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
+    # Capture the pre-run state once.  A multi-checkpoint run writes output
+    # directories as it goes, so calling this inside the loop would make the
+    # second checkpoint look like it ran on a dirty tree.
+    run_git = git_info()
+    run_environment = environment_info(device)
 
     if config.manifest_path is not None:
         base_dir = config.manifest_base_dir or REPO_ROOT
@@ -1056,8 +1070,8 @@ def run_evaluation(config: EvaluationConfig) -> list[Path]:
 
         output_dir = _output_dir_for(config, checkpoint_path)
         metrics: dict[str, object] = {
-            "experiment": "E0.2",
-            "title": "Baseline evaluation harness",
+            "experiment": config.experiment_id,
+            "title": config.title,
             "generated_at_utc": datetime.now(timezone.utc).isoformat(),
             "command": config.command,
             "checkpoint": {
@@ -1070,6 +1084,9 @@ def run_evaluation(config: EvaluationConfig) -> list[Path]:
                 "total_parameters": checkpoint_report.total_parameters,
                 "backbone_parameters": checkpoint_report.backbone_parameters,
                 "head_parameters": checkpoint_report.head_parameters,
+                "head_state_sha256": checkpoint_report.head_state_sha256,
+                "head_last_bias": checkpoint_report.head_last_bias,
+                "batch_norm_steps": list(checkpoint_report.batch_norm_steps),
             },
             "inference": {
                 "source": config.source,
@@ -1110,8 +1127,8 @@ def run_evaluation(config: EvaluationConfig) -> list[Path]:
             "sample_selection": (
                 SAMPLE_SELECTION if config.limit is not None else "all records"
             ),
-            "environment": environment_info(device),
-            "git": git_info(),
+            "environment": run_environment,
+            "git": run_git,
             "splits": split_payloads,
         }
 
@@ -1289,6 +1306,16 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--experiment-id",
+        default="unlabelled",
+        help="experiment identifier recorded in metrics.json (default: unlabelled)",
+    )
+    parser.add_argument(
+        "--title",
+        default="Evaluation run",
+        help="human-readable report title (default: Evaluation run)",
+    )
+    parser.add_argument(
         "--no-progress",
         action="store_true",
         help="disable the tqdm progress bar",
@@ -1370,6 +1397,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             else None
         ),
         show_progress=not args.no_progress,
+        experiment_id=args.experiment_id,
+        title=args.title,
         command=shlex.join(
             [sys.executable, "-m", "spoof_detection.evaluate", *argv_list]
         ),

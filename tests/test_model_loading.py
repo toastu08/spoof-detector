@@ -59,6 +59,9 @@ class CheckpointLoadingTest(unittest.TestCase):
             report.backbone_parameters,
             TOTAL_PARAMETERS - HEAD_PARAMETERS,
         )
+        self.assertEqual(len(report.head_state_sha256), 64)
+        self.assertIsInstance(report.head_last_bias, float)
+        self.assertEqual(report.batch_norm_steps, (0,))
         self.assertFalse(model.training)
         self.assertTrue(
             all(not parameter.requires_grad for parameter in model.parameters())

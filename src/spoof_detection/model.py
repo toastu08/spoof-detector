@@ -42,6 +42,9 @@ class CheckpointLoadReport:
     total_parameters: int
     backbone_parameters: int
     head_parameters: int
+    head_state_sha256: str
+    head_last_bias: float
+    batch_norm_steps: tuple[int, ...]
 
 
 class AudioSpoofDetector(nn.Module):
@@ -84,6 +87,48 @@ def remap_state_dict_keys(
         else:
             remapped[key] = value
     return remapped, remapped_count
+
+
+def _state_dict_fingerprint(
+    state_dict: Mapping[str, torch.Tensor],
+    prefixes: tuple[str, ...],
+) -> str:
+    """Return a stable SHA-256 over the selected tensors and their key names."""
+    hasher = hashlib.sha256()
+    for key in sorted(state_dict):
+        if not key.startswith(prefixes):
+            continue
+        tensor = state_dict[key].detach().cpu().contiguous()
+        if tensor.dtype == torch.bfloat16:
+            tensor = tensor.float()
+        hasher.update(key.encode("utf-8"))
+        hasher.update(str(tensor.dtype).encode("utf-8"))
+        hasher.update(str(tuple(tensor.shape)).encode("utf-8"))
+        hasher.update(tensor.numpy().tobytes())
+    return hasher.hexdigest()
+
+
+def _batch_norm_steps(
+    state_dict: Mapping[str, torch.Tensor],
+) -> tuple[int, ...]:
+    """Return the unique ``num_batches_tracked`` values in the checkpoint."""
+    return tuple(
+        sorted(
+            {
+                int(value.reshape(-1)[0].item())
+                for key, value in state_dict.items()
+                if key.endswith(".num_batches_tracked")
+            }
+        )
+    )
+
+
+def _head_last_bias(state_dict: Mapping[str, torch.Tensor]) -> float:
+    """Return the final head bias, a cheap checkpoint-trained sanity signal."""
+    key = "backbone.fc.3.bias"
+    if key not in state_dict:
+        return float("nan")
+    return float(state_dict[key].detach().cpu().reshape(-1)[0].item())
 
 
 def _extract_state_dict(raw: object) -> Mapping[str, torch.Tensor]:
@@ -131,6 +176,9 @@ def load_model_from_checkpoint(
 
     raw_state_dict = _extract_state_dict(raw)
     state_dict, remapped_count = remap_state_dict_keys(raw_state_dict)
+    head_state_sha256 = _state_dict_fingerprint(state_dict, ("backbone.fc.",))
+    batch_norm_steps = _batch_norm_steps(state_dict)
+    head_last_bias = _head_last_bias(state_dict)
 
     model = AudioSpoofDetector()
     model_keys = set(model.state_dict().keys())
@@ -167,5 +215,8 @@ def load_model_from_checkpoint(
         total_parameters=total,
         backbone_parameters=backbone,
         head_parameters=head,
+        head_state_sha256=head_state_sha256,
+        head_last_bias=head_last_bias,
+        batch_norm_steps=batch_norm_steps,
     )
     return model, report
