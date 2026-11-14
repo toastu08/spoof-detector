@@ -1,4 +1,4 @@
-.PHONY: app verify-data evaluate evaluate-rerun freeze-baseline
+.PHONY: app test verify-data evaluate evaluate-rerun freeze-baseline
 
 CHECKPOINTS = \
 	--checkpoint Models/Itteration1/best_audio_spoof_model_unweighted.pth \
@@ -10,6 +10,9 @@ RERUN_ROOT ?= /tmp/opencode/e0.3-rerun
 app:
 	@clear
 	@uv run --with uvicorn uvicorn app:app --host 0.0.0.0 --port 8000
+
+test:
+	uv run python -m unittest discover -s tests -p "test_*.py" -v
 
 verify-data:
 	uv run python scripts/verify_asvspoof2019_la.py --no-report

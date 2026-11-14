@@ -5,12 +5,13 @@ Logical Access (LA). The current baseline renders a 4-second clip as a
 magma-coloured mel spectrogram and classifies it with a frozen ImageNet-pretrained
 ResNet18 plus a small linear head.
 
-> **Status (2026-11-13):** Phase 0, E0.1–E0.3 complete. The 10,080-clip
+> **Status (2026-11-14):** Phase 0, E0.1–E0.4 complete. The 10,080-clip
 > training subset is reconstructed at `data/derived/train_seed42/` with manifest
 > `manifests/train_seed42.csv`. The evaluation harness is in
-> `src/spoof_detection/evaluate.py`, and the frozen two-checkpoint baseline is
-> in [`reports/baseline/README.md`](reports/baseline/README.md). Contract tests
-> (E0.4) and the leakage audit (E0.5) remain open.
+> `src/spoof_detection/evaluate.py`, the frozen two-checkpoint baseline is in
+> [`reports/baseline/README.md`](reports/baseline/README.md), and the
+> preprocessing/checkpoint/app contract tests pass via `make test`. The leakage
+> audit (E0.5) remains open.
 
 The sigmoid output is a **score, not a calibrated probability**. The demo's
 "confidence" is `max(p, 1 - p)` and must not be read as the probability that a
@@ -36,11 +37,13 @@ make app          # http://localhost:8000
 Run the tests with:
 
 ```bash
-uv run python -m unittest discover -s tests -p "test_*.py" -v
+make test
 ```
 
-Some tests read `data/LA` and `data/dataset_img/train`, so run them after the
-dataset is in place.
+This is equivalent to
+`uv run python -m unittest discover -s tests -p "test_*.py" -v`. Some tests read
+`data/LA` and `data/dataset_img/train`, so run them after the dataset is in
+place.
 
 ## Data: ASVspoof 2019 LA
 
@@ -235,18 +238,31 @@ make app
 
 Open <http://localhost:8000> and upload a `.flac`, `.wav`, or `.mp3` clip. The
 app returns a spoof score, a thresholded label at `p >= 0.5`, and the generated
-mel spectrogram. The score is uncalibrated; see `AGENTS.md` and `ROADMAP.md`.
+mel spectrogram. The score is uncalibrated; see `AGENTS.md` and `ROADMAP.md`. The
+app loads its checkpoint strictly and refuses to start with a missing or
+mismatched state dict.
 
 ## Tests
 
 ```bash
-uv run python -m unittest discover -s tests -p "test_*.py" -v
+make test
 ```
+
+The suite covers E0.1 reconstruction, dataset validation, metrics, model loading,
+evaluation, baseline audit, preprocessing, and app contracts:
+
+- `tests/test_preprocessing.py` locks audio loading/padding, mel and dB
+  computation, min-max normalisation, `magma` rendering and vertical flip, resize
+  plus ImageNet normalisation, and parity with stored dev PNGs.
+- `tests/test_model_loading.py` checks synthetic and real checkpoint remaps,
+  missing/unexpected key failures, parameter counts, and frozen head identity.
+- `tests/test_app_contract.py` checks unsupported file rejection, temp-file
+  cleanup, strict checkpoint loading, and the response contract.
 
 The dataset validator tests use a miniature synthetic tree and do not require the
 7.6 GB download. The E0.1 reconstruction test reads the real `data/LA` and
-`data/dataset_img/train` exports. The ASVspoof checks in
-`tests/test_evaluate.py` skip when the protocols or image exports are missing.
+`data/dataset_img/train` exports. Tests that need the ASVspoof protocols, image
+exports, or local checkpoints skip when those artifacts are missing.
 
 ## Known limitations
 

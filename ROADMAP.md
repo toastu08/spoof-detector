@@ -5,14 +5,15 @@ Prioritized research roadmap for the audio spoof detection project.
 Read [`AGENTS.md`](./AGENTS.md) first. It contains the operating rules, verified
 current state, and hard guardrails. This document assumes those rules.
 
-Last updated: 2026-11-13.
+Last updated: 2026-11-14.
 
-**Current status (2026-11-13):** E0.1, E0.2, and E0.3 are complete. The
+**Current status (2026-11-14):** E0.1, E0.2, E0.3, and E0.4 are complete. The
 10,080-clip training subset is reconstructed at `data/derived/train_seed42/`
 with manifest `manifests/train_seed42.csv`; the evaluation harness scores full
-dev/eval reproducibly; and the two-checkpoint baseline is frozen at
-`reports/baseline/README.md`. Phase 0 is not complete: E0.4 (contract tests) and
-E0.5 (data and leakage audit) remain.
+dev/eval reproducibly; the two-checkpoint baseline is frozen at
+`reports/baseline/README.md`; and the preprocessing, checkpoint-loading, and app
+contract tests pass via `make test`. Phase 0 is not complete: E0.5 (data and
+leakage audit) remains.
 
 ---
 
@@ -64,9 +65,9 @@ Each experiment below should make at least one hypothesis more or less likely.
 
 Phase 0 must pass before any Phase 1-4 experiment is treated as a result. The
 gate exists because the original training images were overwritten. The training
-manifest (E0.1), evaluation harness (E0.2), and frozen two-checkpoint baseline
-(E0.3) now exist, so new numbers can be compared to a recorded baseline; the
-remaining gate work is the contract tests (E0.4) and the leakage audit (E0.5).
+manifest (E0.1), evaluation harness (E0.2), frozen two-checkpoint baseline
+(E0.3), and contract tests (E0.4) now exist, so new numbers can be compared to a
+recorded baseline; the remaining gate work is the leakage audit (E0.5).
 
 ### Experiment format
 
@@ -117,8 +118,9 @@ measurable before changing anything.
 
 **Why this is first:** the current `data/dataset_img/train` is the full 25,380-image
 export, not the original training subset, and the original PNGs are gone. E0.1
-has reconstructed the subset and frozen its manifest; the remaining gate work is
-the evaluation harness, baseline table, contract tests, and leakage audit.
+has reconstructed the subset and frozen its manifest; the evaluation harness,
+baseline table, and contract tests now exist. The remaining gate work is the
+leakage audit (E0.5).
 
 ### E0.1 Reconstruct the 10,080-clip training manifest
 
@@ -211,6 +213,14 @@ output: `reports/baseline/best_audio_spoof_model_unweighted/`.
   broken key remap fails the test instead of loading silently.
 - **Artifact:** `tests/test_preprocessing.py`, `tests/test_model_loading.py`,
   and `tests/test_app_contract.py`.
+- **Status: complete (2026-11-14).** `make test` runs 116 tests and passes. The
+  app now loads its checkpoint through the strict package loader and
+  refuses to start on a missing or mismatched state dict; a deliberately broken
+  prefix raises instead of loading silently. A full image-input rerun of both
+  checkpoints on dev and eval reproduced all four score CSVs byte-for-byte and
+  every EER/AUC at zero difference, and image vs source-audio input gave
+  bit-identical logits on a deterministic 100-clip-per-split subset. Report:
+  `reports/phase0/E0.4/README.md`.
 
 ### E0.5 Data and leakage audit
 
@@ -237,7 +247,8 @@ Phase 0 is complete only when all of the following are true:
       (E0.2, 2026-11-09: `make evaluate`.)
 - [x] Both checkpoints have a frozen baseline table with per-attack EER.
       (E0.3, 2026-11-13: `reports/baseline/README.md`.)
-- [ ] Preprocessing and model-loading tests pass.
+- [x] Preprocessing and model-loading tests pass.
+      (E0.4, 2026-11-14: `make test`.)
 - [ ] The data audit finds no train/dev/eval leakage.
 
 If any item fails, fix it before starting Phase 1.
@@ -498,19 +509,17 @@ safe to expose.
 
 ## 10. Prioritized next actions
 
-E0.1 is complete (2026-11-07). The remaining prioritized actions are:
+E0.1–E0.4 are complete. The remaining prioritized actions are:
 
 | Priority | Experiment | Reason |
 |---:|---|---|
-| 1 | E0.2 | Metrics must exist before any change is evaluated |
-| 2 | E0.3 | Freeze the baseline table for both checkpoints |
-| 3 | E0.4 + E0.5 | Prevent silent preprocessing and leakage failures |
-| 4 | E1.4 | Cheapest high-information test: is the baseline using shortcuts? |
-| 5 | E1.2 | Clarifies whether the image rendering is doing real work |
-| 6 | E2.1 | Establishes the domain gap before investing in scaling |
-| 7 | E1.3 | Tests whether unfreezing is worth the compute |
-| 8 | E3.1 | Guides the data-vs-architecture decision |
-| 9 | E2.5 | Required before the app can report honest confidence |
+| 1 | E0.5 | Last Phase 0 gate item: confirm no train/dev/eval leakage |
+| 2 | E1.4 | Cheapest high-information test: is the baseline using shortcuts? |
+| 3 | E1.2 | Clarifies whether the image rendering is doing real work |
+| 4 | E2.1 | Establishes the domain gap before investing in scaling |
+| 5 | E1.3 | Tests whether unfreezing is worth the compute |
+| 6 | E3.1 | Guides the data-vs-architecture decision |
+| 7 | E2.5 | Required before the app can report honest confidence |
 
 Do not start a lower-priority experiment while a higher-priority gate item is
 unresolved, unless the user explicitly reprioritizes.

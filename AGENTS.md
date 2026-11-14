@@ -6,14 +6,15 @@ Read this file before changing code, data, models, or experiment claims. For the
 prioritized research plan, read [`ROADMAP.md`](./ROADMAP.md). This file records
 what is true today; the roadmap records what we intend to test next.
 
-Last verified: 2026-11-13. Notebook MCP status re-verified 2026-11-13.
+Last verified: 2026-11-14. Notebook MCP status re-verified 2026-11-13.
 
-**Current status (2026-11-13):** E0.1, E0.2, and E0.3 complete. The 10,080-clip
-training subset is reconstructed at `data/derived/train_seed42/` with manifest
-`manifests/train_seed42.csv`. The evaluation harness scores full dev/eval from
-one command, and both first-iteration checkpoints now have a frozen,
-reproducibility-audited baseline under `reports/baseline/`. Phase 0 is still
-open: E0.4 (contract tests) and E0.5 (data and leakage audit) are pending.
+**Current status (2026-11-14):** E0.1, E0.2, E0.3, and E0.4 complete. The
+10,080-clip training subset is reconstructed at `data/derived/train_seed42/`
+with manifest `manifests/train_seed42.csv`. The evaluation harness scores full
+dev/eval from one command, both first-iteration checkpoints have a frozen,
+reproducibility-audited baseline under `reports/baseline/`, and preprocessing,
+checkpoint-loading, and app-contract tests pass via `make test`. Phase 0 is
+still open only for E0.5 (data and leakage audit).
 
 ---
 
@@ -84,7 +85,7 @@ was trained on.
 | `1.2_data_prep-dev.ipynb` | Dev export notebook | Accessible via python-notebook MCP |
 | `1.3_data_prep-eval.ipynb` | Eval export notebook | Accessible via python-notebook MCP |
 | `2_model.ipynb` | Original training/evaluation notebook | Accessible via python-notebook MCP |
-| `app.py` | FastAPI inference demo | Working; see section 4.5 |
+| `app.py` | FastAPI inference demo | Working; strict checkpoint load and shared preprocessing; see section 4.5 |
 | `templates/index.html` | Browser UI for the demo | Working |
 | `Models/Itteration1/` | First-iteration checkpoints and `MODELS.md` | Existing; keep spelling for compatibility |
 | `best_audio_spoof_model_unweighted.pth` | Root checkpoint actually loaded by `app.py` | Existing; do not overwrite |
@@ -93,14 +94,14 @@ was trained on.
 | `data/dataset_img/` | Exported spectrogram PNGs and metadata for train/dev/eval | Existing; do not overwrite |
 | `data/derived/train_seed42/` | Reconstructed 10,080-image first-iteration training set (E0.1) | New; 257 MB; gitignored |
 | `manifests/` | Data manifests and metadata | `train_seed42.csv` + `.meta.json`; `asvspoof2019_la.meta.json` (dataset verification) |
-| `reports/` | Experiment reports | `phase0/E0.1/`, `phase0/E0.2/`, `phase0/E0.3/` |
+| `reports/` | Experiment reports | `phase0/E0.1/`, `phase0/E0.2/`, `phase0/E0.3/`, `phase0/E0.4/` |
 | `scripts/` | Thin CLI entry points | `reproduce_train_seed42.py`, `verify_asvspoof2019_la.py`, `freeze_baseline.py` |
 | `tests/test1/` | Eight ElevenLabs clips plus `test1-results.csv` | Existing; do not overwrite |
-| `tests/` | Automated tests | E0.1 reconstruction, dataset validation, metrics, model loading, evaluation, baseline audit |
+| `tests/` | Automated tests | E0.1 reconstruction, dataset validation, metrics, model loading, evaluation, baseline audit, preprocessing contract, app contract |
 | `src/spoof_detection/` | Reusable package code | `protocol.py`, `sampling.py`, `preprocess.py`, `dataset.py`, `model.py`, `metrics.py`, `evaluate.py`, `baseline.py` |
 | `reports/baseline/` | Frozen two-checkpoint `metrics.json`, per-clip scores, `summary.md`, and `freeze_report.json` | E0.3 two-checkpoint dev+eval baseline |
 | `pyproject.toml`, `uv.lock` | Project metadata and locked dependencies | Source of truth for dependencies |
-| `makefile` | `make app`, `make verify-data`, `make evaluate`, `make evaluate-rerun`, `make freeze-baseline` | Working |
+| `makefile` | `make app`, `make test`, `make verify-data`, `make evaluate`, `make evaluate-rerun`, `make freeze-baseline` | Working |
 | `README.md` | Setup, data acquisition, demo, and limitations | Written; keep commands in sync |
 
 ---
@@ -214,11 +215,11 @@ Checkpoints:
 | `Models/Itteration1/best_audio_spoof_model_weighted.pth` | Spoof `pos_weight` 0.344 (≈2.91× bonafide) | First-iteration weighted model |
 | `best_audio_spoof_model_unweighted.pth` | No class weights | Root duplicate loaded by `app.py` |
 
-The checkpoints use a `network.` key prefix; `app.py` remaps `network.` to
-`backbone.` before loading. The app loads with `strict=False`, which means a
-broken key mapping can silently leave parts of the model randomly initialized.
-Do not trust a "loaded successfully" print without checking missing/unexpected
-keys.
+The checkpoints use a `network.` key prefix. Both the evaluation harness and
+`app.py` load them through `model.load_model_from_checkpoint`, which remaps the
+prefix and raises unless the missing and unexpected key lists are both empty.
+Do not trust a "loaded successfully" print without checking those lists; the
+strict loader makes the check unavoidable.
 
 Training configuration was read from `2_model.ipynb` via the python-notebook MCP
 on 2026-11-13:
@@ -295,8 +296,13 @@ removes paths inside `data/derived/`.
 
 `app.py` is a FastAPI demo:
 
-- Loads `best_audio_spoof_model_unweighted.pth` from the repository root.
-- Remaps `network.` to `backbone.` and loads with `strict=False`.
+- Loads `best_audio_spoof_model_unweighted.pth` from the repository root through
+  `model.load_model_from_checkpoint`, which raises on a missing or mismatched
+  state dict. The app therefore fails at startup instead of silently running
+  with randomly initialised weights.
+- Uses the package preprocessing helpers (`generate_mel_spectrogram`,
+  `render_mel_rgb`, and `build_inference_transform`); it no longer duplicates
+  the model or preprocessing code.
 - Accepts `.flac`, `.wav`, and `.mp3` uploads.
 - Writes every upload to a temporary file with suffix `.flac`, regardless of the
   original format, then deletes it in `finally`.
@@ -399,6 +405,20 @@ class-stratified `--limit` for smoke tests, `--threshold-from` to reuse a
 previous dev threshold for eval-only or manifest runs, and
 `--experiment-id`/`--title` to label output metadata. Only the dev EER threshold
 is selected on data; eval is never used for threshold selection.
+
+### 4.9 Contract tests (E0.4, complete)
+
+`tests/test_preprocessing.py` locks audio loading/padding, mel and dB computation,
+min-max normalisation, `magma` rendering and vertical flip, resize plus ImageNet
+normalisation, and pixel parity with the stored dev PNGs.
+`tests/test_model_loading.py` covers synthetic and real checkpoint remaps and
+fails on a deliberately broken prefix. `tests/test_app_contract.py` covers
+unsupported file rejection, temp-file cleanup, strict checkpoint loading, and the
+response contract (`p >= 0.5` is spoof; `confidence = max(p, 1-p)`).
+
+`make test` runs all 116 tests. The full dev/eval image rerun after the
+preprocessing refactor is byte-identical to `reports/baseline/`. Full report:
+`reports/phase0/E0.4/README.md`.
 
 ---
 
@@ -534,8 +554,8 @@ and do not use it as a baseline.
 
 - Python 3.14, 4-space indentation, type hints on public functions.
 - Put reusable logic in `src/spoof_detection/`, not in notebooks or `app.py`.
-- Keep `app.py` thin: preprocessing and model definitions should eventually move
-  to the package and be imported by both training and inference.
+- Keep `app.py` thin: it imports the model definition, strict loader, and
+  preprocessing helpers from `src/spoof_detection/` rather than duplicating them.
 - Prefer explicit paths resolved from the repository root; do not depend on the
   caller's current working directory.
 - Use `pathlib.Path` for new filesystem code.
@@ -610,12 +630,15 @@ uv run python -m spoof_detection.evaluate \
   --asvspoof dev eval --source image --limit 100 \
   --output-dir /tmp/opencode/e0.2-smoke
 
-# Run the current unit tests (E0.1, metrics, model loading, evaluation, baseline)
+# Run the full unit and contract test suite
+make test
+
+# Equivalent direct command
 uv run python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-There is still no CI pipeline; that and the remaining Phase 0 items (E0.4–E0.5)
-are open.
+There is still no CI pipeline; that and the remaining Phase 0 item (E0.5) are
+open.
 
 ---
 
@@ -639,8 +662,9 @@ are open.
    unmeasured outside ASVspoof.
 5. **Uncalibrated scores.** The app's confidence is not meaningful as a
    probability.
-6. **Silent-load risk remains in `app.py`.** The evaluation harness loads
-   strictly, but `app.py` still remaps keys and loads with `strict=False`.
+6. **Silent-load risk in `app.py` resolved (E0.4).** Both the harness and the app
+   use `model.load_model_from_checkpoint`, which raises on missing or unexpected
+   keys. The app now refuses to start with a broken checkpoint.
 7. **App hardening.** No upload size limit, CORS is fully open, and all uploads
    are written with a `.flac` suffix.
 8. **Leakage audit still open (E0.5).** Dev was used by the original training loop
@@ -655,7 +679,8 @@ are open.
     `manifests/asvspoof2019_la.meta.json`.
 11. **Project scaffolding is mostly complete.** `src/spoof_detection/` has
     protocol, sampling, preprocessing, dataset-validation, model-loading,
-    metrics, evaluation, and baseline-audit modules with unit tests. `README.md`
+    metrics, evaluation, and baseline-audit modules with unit tests. E0.4 added
+    preprocessing and app-contract tests; `make test` runs 116 tests. `README.md`
     documents setup, data acquisition, and evaluation. There is still no CI
     pipeline.
 
@@ -675,7 +700,8 @@ For any new task:
    threshold, and sample count **before** running the experiment.
 5. For a baseline comparison, use `reports/baseline/README.md` and keep the
    preprocessing contract, training manifest, and split definitions identical.
-   Run `make freeze-baseline` after any evaluation or checkpoint-loading change.
+   Run `make test` after any preprocessing, metric, loading, or app change, and
+   `make freeze-baseline` after any evaluation or checkpoint-loading change.
 6. If the task involves a new model, create `Models/IterationN/MODELS.md` first.
 7. If the task requires notebook access, use the python-notebook MCP tools under
    the rules in G1; do not parse notebook JSON directly. If a tool errors, report
@@ -690,3 +716,7 @@ For any new task:
   model notes.
 - [`reports/phase0/E0.1/E0.1_provenance.md`](./reports/phase0/E0.1/E0.1_provenance.md):
   E0.1 reconstruction provenance, verification, and limitations.
+- [`reports/phase0/E0.3/README.md`](./reports/phase0/E0.3/README.md): frozen
+  two-checkpoint baseline and audit.
+- [`reports/phase0/E0.4/README.md`](./reports/phase0/E0.4/README.md):
+  preprocessing, checkpoint-loading, and app-contract tests.

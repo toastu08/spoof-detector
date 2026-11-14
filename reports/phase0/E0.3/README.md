@@ -280,7 +280,8 @@ quoted as exact.
 - Training schedules and seeds are not fully recoverable; the weighted
   checkpoint provenance is unexplained by the visible notebook run.
 - No speaker-overlap or leakage audit yet (E0.5).
-- `app.py` still loads with `strict=False`; the harness loads strictly.
+- `app.py` loaded with `strict=False` at the time of this run; the harness loaded
+  strictly. Resolved in E0.4: the app now uses the strict loader.
 
 ## Artifacts
 

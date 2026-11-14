@@ -42,6 +42,22 @@ IMAGENET_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_STD = (0.229, 0.224, 0.225)
 
 
+def load_fixed_audio(
+    file_path: str | Path,
+    target_seconds: int = TARGET_SECONDS,
+    sample_rate: int = SAMPLE_RATE,
+) -> tuple[np.ndarray, int]:
+    """Load ``file_path`` as mono audio fixed to ``target_seconds``.
+
+    Short clips are zero-padded at the end and long clips are truncated to the
+    first ``target_seconds``.  This is contract steps 1-2 of the preprocessing
+    chain (AGENTS.md section 4.2).
+    """
+    target_length = target_seconds * sample_rate
+    y, sr = librosa.load(str(file_path), sr=sample_rate)
+    return librosa.util.fix_length(data=y, size=target_length), int(sr)
+
+
 def generate_mel_spectrogram(
     file_path: str | Path,
     target_seconds: int = TARGET_SECONDS,
@@ -53,12 +69,47 @@ def generate_mel_spectrogram(
     The result has shape ``(n_mels, 126)`` for 4 s at 16 kHz with librosa's
     default ``n_fft=2048`` / ``hop_length=512`` / ``center=True``.
     """
-    target_length = target_seconds * sample_rate
-
-    y, sr = librosa.load(str(file_path), sr=sample_rate)
-    y_fixed = librosa.util.fix_length(data=y, size=target_length)
+    y_fixed, sr = load_fixed_audio(file_path, target_seconds, sample_rate)
     mel_spec = librosa.feature.melspectrogram(y=y_fixed, sr=sr, n_mels=n_mels)
     return librosa.power_to_db(mel_spec, ref=np.max)
+
+
+def normalize_mel_db(spec_db: np.ndarray) -> np.ndarray:
+    """Min-max normalise a dB spectrogram to ``[0, 1]``.
+
+    A constant spectrogram has no range to normalise, so it maps to all zeros.
+    This matches the first-iteration app behaviour exactly.
+    """
+    spec_db = np.asarray(spec_db)
+    db_min = spec_db.min()
+    db_max = spec_db.max()
+    if db_max != db_min:
+        return (spec_db - db_min) / (db_max - db_min)
+    return np.zeros_like(spec_db)
+
+
+def colorize_mel(
+    normalized: np.ndarray,
+    cmap: str = COLORMAP,
+) -> np.ndarray:
+    """Map ``[0, 1]`` values through ``cmap`` and flip vertically.
+
+    Returns an ``(n_mels, frames, 3)`` ``uint8`` RGB array.  The flip is the
+    ``origin='lower'`` orientation used by the dataset export.
+    """
+    import matplotlib.pyplot as plt
+
+    rgba = plt.get_cmap(cmap)(np.asarray(normalized))
+    flipped = np.flipud(rgba)
+    return (flipped[:, :, :3] * 255).astype(np.uint8)
+
+
+def render_mel_rgb(
+    spec_db: np.ndarray,
+    cmap: str = COLORMAP,
+) -> np.ndarray:
+    """Render a dB spectrogram to the RGB image the app sends to the model."""
+    return colorize_mel(normalize_mel_db(spec_db), cmap=cmap)
 
 
 def save_mel_spectrogram_png(
