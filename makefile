@@ -1,4 +1,4 @@
-.PHONY: app test verify-data evaluate evaluate-rerun freeze-baseline
+.PHONY: app test verify-data audit-data evaluate evaluate-rerun freeze-baseline
 
 CHECKPOINTS = \
 	--checkpoint Models/Itteration1/best_audio_spoof_model_unweighted.pth \
@@ -16,6 +16,9 @@ test:
 
 verify-data:
 	uv run python scripts/verify_asvspoof2019_la.py --no-report
+
+audit-data:
+	uv run python scripts/audit_data.py
 
 evaluate:
 	uv run python -m spoof_detection.evaluate \

@@ -5,13 +5,14 @@ Logical Access (LA). The current baseline renders a 4-second clip as a
 magma-coloured mel spectrogram and classifies it with a frozen ImageNet-pretrained
 ResNet18 plus a small linear head.
 
-> **Status (2026-11-14):** Phase 0, E0.1–E0.4 complete. The 10,080-clip
+> **Status (2026-11-14):** Phase 0, E0.1–E0.5 complete. The 10,080-clip
 > training subset is reconstructed at `data/derived/train_seed42/` with manifest
 > `manifests/train_seed42.csv`. The evaluation harness is in
 > `src/spoof_detection/evaluate.py`, the frozen two-checkpoint baseline is in
-> [`reports/baseline/README.md`](reports/baseline/README.md), and the
-> preprocessing/checkpoint/app contract tests pass via `make test`. The leakage
-> audit (E0.5) remains open.
+> [`reports/baseline/README.md`](reports/baseline/README.md), the
+> preprocessing/checkpoint/app contract tests pass via `make test`, and the data
+> and leakage audit ([`reports/audit/data_audit.md`](reports/audit/data_audit.md))
+> finds no train/dev/eval leakage.
 
 The sigmoid output is a **score, not a calibrated probability**. The demo's
 "confidence" is `max(p, 1 - p)` and must not be read as the probability that a
@@ -214,6 +215,31 @@ trained-vs-reinitialised head control. See
 [`reports/phase0/E0.2/README.md`](reports/phase0/E0.2/README.md) for the harness
 design and the unweighted-only first results.
 
+## Data and leakage audit
+
+Confirm that eval is genuinely held out before trusting any eval number:
+
+```bash
+make audit-data
+# equivalent:
+uv run python scripts/audit_data.py
+```
+
+The audit is read-only over `data/`, `Models/`, and `reports/baseline/`. It
+checks protocol/metadata row alignment, pairwise speaker and filename isolation,
+SHA-256 content duplicates across all 122,299 audio files and 131,541 images,
+training-manifest containment and identity, exclusion of the 838 `_A` enrollment
+files, and baseline threshold lineage (dev selection only). It writes
+`reports/audit/data_audit.md` and `reports/audit/data_audit.json` and exits
+nonzero if any check fails. Add `--skip-hashes` for a structural-only run that
+marks checks B.3/B.4 as skipped. The canonical result and its limitations are in
+[`reports/phase0/E0.5/README.md`](reports/phase0/E0.5/README.md).
+
+The audit finds **no train/dev/eval leakage**: zero cross-split speaker,
+filename, audio-hash, or image-hash collisions, and zero training clips in
+dev/eval. Dev is still a documented **model-selection split** (early stopping and
+the E0.3 threshold were chosen on dev); eval is the clean estimate.
+
 To score an external corpus, provide a labelled CSV with a `label` column and a
 path column (`image_path`/`img_path` for `--source image`, or
 `source_flac`/`audio_path`/`file_path`/`path` for `--source audio`):
@@ -249,7 +275,7 @@ make test
 ```
 
 The suite covers E0.1 reconstruction, dataset validation, metrics, model loading,
-evaluation, baseline audit, preprocessing, and app contracts:
+evaluation, baseline audit, data audit, preprocessing, and app contracts:
 
 - `tests/test_preprocessing.py` locks audio loading/padding, mel and dB
   computation, min-max normalisation, `magma` rendering and vertical flip, resize
@@ -258,6 +284,9 @@ evaluation, baseline audit, preprocessing, and app contracts:
   missing/unexpected key failures, parameter counts, and frozen head identity.
 - `tests/test_app_contract.py` checks unsupported file rejection, temp-file
   cleanup, strict checkpoint loading, and the response contract.
+- `tests/test_audit.py` checks split alignment, speaker/filename isolation,
+  duplicate-hash classification, manifest containment, enrollment exclusion, and
+  baseline threshold lineage, plus a real-data structural audit.
 
 The dataset validator tests use a miniature synthetic tree and do not require the
 7.6 GB download. The E0.1 reconstruction test reads the real `data/LA` and
@@ -276,5 +305,8 @@ exports, or local checkpoints skip when those artifacts are missing.
   weighted model improves threshold-free EER only slightly and mainly shifts the
   operating point. Dev was used for early stopping, so it is a model-selection
   split rather than a clean holdout.
+- The data audit proves eval is isolated by clip identity, speaker, content hash,
+  and artifact lineage. It cannot detect re-encoded or resampled copies, and it
+  cannot prove anything about uncommitted historical runs that left no artifact.
 - The current model is a frozen ImageNet backbone with a small linear head. It is
   a research probe, not a production anti-spoofing system.

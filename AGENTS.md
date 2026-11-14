@@ -8,13 +8,14 @@ what is true today; the roadmap records what we intend to test next.
 
 Last verified: 2026-11-14. Notebook MCP status re-verified 2026-11-13.
 
-**Current status (2026-11-14):** E0.1, E0.2, E0.3, and E0.4 complete. The
+**Current status (2026-11-14):** E0.1, E0.2, E0.3, E0.4, and E0.5 complete. The
 10,080-clip training subset is reconstructed at `data/derived/train_seed42/`
 with manifest `manifests/train_seed42.csv`. The evaluation harness scores full
 dev/eval from one command, both first-iteration checkpoints have a frozen,
 reproducibility-audited baseline under `reports/baseline/`, and preprocessing,
-checkpoint-loading, and app-contract tests pass via `make test`. Phase 0 is
-still open only for E0.5 (data and leakage audit).
+checkpoint-loading, and app-contract tests pass via `make test`. The data and
+leakage audit (`reports/audit/data_audit.md`) finds no train/dev/eval leakage, so
+Phase 0 is complete and Phase 1 can start.
 
 ---
 
@@ -94,14 +95,15 @@ was trained on.
 | `data/dataset_img/` | Exported spectrogram PNGs and metadata for train/dev/eval | Existing; do not overwrite |
 | `data/derived/train_seed42/` | Reconstructed 10,080-image first-iteration training set (E0.1) | New; 257 MB; gitignored |
 | `manifests/` | Data manifests and metadata | `train_seed42.csv` + `.meta.json`; `asvspoof2019_la.meta.json` (dataset verification) |
-| `reports/` | Experiment reports | `phase0/E0.1/`, `phase0/E0.2/`, `phase0/E0.3/`, `phase0/E0.4/` |
-| `scripts/` | Thin CLI entry points | `reproduce_train_seed42.py`, `verify_asvspoof2019_la.py`, `freeze_baseline.py` |
+| `reports/` | Experiment reports | `phase0/E0.1/` … `phase0/E0.5/`; `audit/` |
+| `reports/audit/` | E0.5 data/leakage audit report | `data_audit.md` + `data_audit.json` (PASS) |
+| `scripts/` | Thin CLI entry points | `reproduce_train_seed42.py`, `verify_asvspoof2019_la.py`, `freeze_baseline.py`, `audit_data.py` |
 | `tests/test1/` | Eight ElevenLabs clips plus `test1-results.csv` | Existing; do not overwrite |
-| `tests/` | Automated tests | E0.1 reconstruction, dataset validation, metrics, model loading, evaluation, baseline audit, preprocessing contract, app contract |
-| `src/spoof_detection/` | Reusable package code | `protocol.py`, `sampling.py`, `preprocess.py`, `dataset.py`, `model.py`, `metrics.py`, `evaluate.py`, `baseline.py` |
+| `tests/` | Automated tests | E0.1 reconstruction, dataset validation, metrics, model loading, evaluation, baseline audit, data audit, preprocessing contract, app contract |
+| `src/spoof_detection/` | Reusable package code | `protocol.py`, `sampling.py`, `preprocess.py`, `dataset.py`, `model.py`, `metrics.py`, `evaluate.py`, `baseline.py`, `audit.py` |
 | `reports/baseline/` | Frozen two-checkpoint `metrics.json`, per-clip scores, `summary.md`, and `freeze_report.json` | E0.3 two-checkpoint dev+eval baseline |
 | `pyproject.toml`, `uv.lock` | Project metadata and locked dependencies | Source of truth for dependencies |
-| `makefile` | `make app`, `make test`, `make verify-data`, `make evaluate`, `make evaluate-rerun`, `make freeze-baseline` | Working |
+| `makefile` | `make app`, `make test`, `make verify-data`, `make audit-data`, `make evaluate`, `make evaluate-rerun`, `make freeze-baseline` | Working |
 | `README.md` | Setup, data acquisition, demo, and limitations | Written; keep commands in sync |
 
 ---
@@ -416,9 +418,41 @@ fails on a deliberately broken prefix. `tests/test_app_contract.py` covers
 unsupported file rejection, temp-file cleanup, strict checkpoint loading, and the
 response contract (`p >= 0.5` is spoof; `confidence = max(p, 1-p)`).
 
-`make test` runs all 116 tests. The full dev/eval image rerun after the
-preprocessing refactor is byte-identical to `reports/baseline/`. Full report:
-`reports/phase0/E0.4/README.md`.
+`make test` ran 116 tests at E0.4 (138 now, including the E0.5 audit suite). The
+full dev/eval image rerun after the preprocessing refactor is byte-identical to
+`reports/baseline/`. Full report: `reports/phase0/E0.4/README.md`.
+
+### 4.10 Data and leakage audit (E0.5, complete)
+
+`src/spoof_detection/audit.py` plus `scripts/audit_data.py` implement a
+read-only data and leakage audit. `make audit-data` hashes all 122,299 audio
+files and 131,541 images (the full train/dev/eval exports plus
+`data/derived/train_seed42/`), checks protocol/metadata alignment, and writes
+`reports/audit/data_audit.md` and `reports/audit/data_audit.json`. It exits
+nonzero on any failure; `--skip-hashes` runs structural checks only and marks
+B.3/B.4 skipped.
+
+Result on 2026-11-14: **all 15 checks PASS.** Verified facts:
+
+| Check | Result |
+|---|---|
+| A.1 layout/protocol hashes | PASS |
+| A.2–A.4 row alignment | PASS: 25,380 / 24,844 / 71,237 rows; 0 missing, 0 orphaned images |
+| B.1 speaker and filename isolation | PASS: no pairwise overlap |
+| B.2 attack coverage | PASS: train/dev A01–A06; eval A07–A19, no overlap |
+| B.3 audio duplicates | PASS: 122,299 files hashed, 0 cross-split, 0 within-split |
+| B.4 image duplicates | PASS: 131,541 files hashed, 0 cross-split; 10,080 within-train groups, all explained as derived-subset/full-export pairs, 0 unexplained |
+| C.1–C.3 manifest | PASS: hash `22f98abd…`, 10,080 rows, 10,080/10,080 audio+image hashes match, zero name/speaker/content overlap with dev or eval |
+| D.1 enrollment exclusion | PASS: 142 dev + 696 eval `_A` files excluded |
+| E.1–E.3 baseline lineage | PASS: `selected_on: dev`, `source: in_run_dev`, eval threshold equals the re-derived dev threshold, artifacts match `freeze_report.json` |
+
+**No train/dev/eval leakage was found.** Dev remains a documented
+**model-selection split** (early stopping in `2_model.ipynb` and E0.3 threshold
+selection); eval was read only by the post-training inference cells (23 and 25)
+and is the clean estimate. Notebook evidence is in
+`reports/phase0/E0.5/README.md`. The audit catches only exact byte duplicates
+and cannot speak to uncommitted historical runs. `make test` runs 138 tests
+including `tests/test_audit.py` (22 tests and a real-data structural audit).
 
 ---
 
@@ -624,6 +658,13 @@ uv run python scripts/freeze_baseline.py
 # All three of the above in sequence
 make freeze-baseline
 
+# Run the E0.5 data and leakage audit (~44 s, hashes 122,299 FLACs + 131,541 PNGs)
+make audit-data
+# equivalent
+uv run python scripts/audit_data.py
+# structural-only run; B.3/B.4 are marked skipped
+uv run python scripts/audit_data.py --skip-hashes
+
 # Smoke-test the harness on a deterministic 100-clip-per-split subset
 uv run python -m spoof_detection.evaluate \
   --checkpoint Models/Itteration1/best_audio_spoof_model_unweighted.pth \
@@ -637,8 +678,8 @@ make test
 uv run python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-There is still no CI pipeline; that and the remaining Phase 0 item (E0.5) are
-open.
+There is still no CI pipeline; that is the only open infrastructure item. Phase 0
+is complete.
 
 ---
 
@@ -667,11 +708,12 @@ open.
    keys. The app now refuses to start with a broken checkpoint.
 7. **App hardening.** No upload size limit, CORS is fully open, and all uploads
    are written with a `.flac` suffix.
-8. **Leakage audit still open (E0.5).** Dev was used by the original training loop
-   for early stopping and by E0.3 for threshold selection, so it is a
-   model-selection split, not a clean holdout. There is no evidence that eval
-   entered training, early stopping, or threshold selection, but the formal
-   row-level and speaker-overlap audit has not been written yet.
+8. **Leakage audit complete (E0.5).** No train/dev/eval leakage was found; see
+   section 4.10 and `reports/audit/data_audit.md`. Dev remains a
+   model-selection split because the original loop early-stopped on it and E0.3
+   selected the threshold on it. The audit detects only exact byte duplicates, so
+   a re-encoded copy would not be caught, and it cannot speak to uncommitted
+   historical runs.
 9. **Class imbalance.** Training was 2,580 bonafide vs 7,500 spoof (about 1:2.9).
    Accuracy alone is misleading; report per-class recall and EER.
 10. **Archive artifact.** `data/archive.zip` was deleted on 2026-11-07 after
@@ -679,9 +721,10 @@ open.
     `manifests/asvspoof2019_la.meta.json`.
 11. **Project scaffolding is mostly complete.** `src/spoof_detection/` has
     protocol, sampling, preprocessing, dataset-validation, model-loading,
-    metrics, evaluation, and baseline-audit modules with unit tests. E0.4 added
-    preprocessing and app-contract tests; `make test` runs 116 tests. `README.md`
-    documents setup, data acquisition, and evaluation. There is still no CI
+    metrics, evaluation, baseline-audit, and data-audit modules with unit tests.
+    E0.4 added preprocessing and app-contract tests; E0.5 added `audit.py` and
+    `tests/test_audit.py`, so `make test` runs 138 tests. `README.md` documents
+    setup, data acquisition, evaluation, and the audit. There is still no CI
     pipeline.
 
 ---
@@ -700,8 +743,9 @@ For any new task:
    threshold, and sample count **before** running the experiment.
 5. For a baseline comparison, use `reports/baseline/README.md` and keep the
    preprocessing contract, training manifest, and split definitions identical.
-   Run `make test` after any preprocessing, metric, loading, or app change, and
-   `make freeze-baseline` after any evaluation or checkpoint-loading change.
+   Run `make test` after any preprocessing, metric, loading, or app change,
+   `make freeze-baseline` after any evaluation or checkpoint-loading change, and
+   `make audit-data` after any data, manifest, or split change.
 6. If the task involves a new model, create `Models/IterationN/MODELS.md` first.
 7. If the task requires notebook access, use the python-notebook MCP tools under
    the rules in G1; do not parse notebook JSON directly. If a tool errors, report
@@ -720,3 +764,7 @@ For any new task:
   two-checkpoint baseline and audit.
 - [`reports/phase0/E0.4/README.md`](./reports/phase0/E0.4/README.md):
   preprocessing, checkpoint-loading, and app-contract tests.
+- [`reports/audit/data_audit.md`](./reports/audit/data_audit.md): canonical E0.5
+  data and leakage audit report.
+- [`reports/phase0/E0.5/README.md`](./reports/phase0/E0.5/README.md): E0.5
+  experiment log, notebook lineage evidence, and limitations.

@@ -7,13 +7,14 @@ current state, and hard guardrails. This document assumes those rules.
 
 Last updated: 2026-11-14.
 
-**Current status (2026-11-14):** E0.1, E0.2, E0.3, and E0.4 are complete. The
-10,080-clip training subset is reconstructed at `data/derived/train_seed42/`
-with manifest `manifests/train_seed42.csv`; the evaluation harness scores full
-dev/eval reproducibly; the two-checkpoint baseline is frozen at
-`reports/baseline/README.md`; and the preprocessing, checkpoint-loading, and app
-contract tests pass via `make test`. Phase 0 is not complete: E0.5 (data and
-leakage audit) remains.
+**Current status (2026-11-14):** E0.1, E0.2, E0.3, E0.4, and E0.5 are complete.
+The 10,080-clip training subset is reconstructed at
+`data/derived/train_seed42/` with manifest `manifests/train_seed42.csv`; the
+evaluation harness scores full dev/eval reproducibly; the two-checkpoint baseline
+is frozen at `reports/baseline/README.md`; preprocessing, checkpoint-loading, and
+app contract tests pass via `make test`; and the data and leakage audit finds no
+train/dev/eval leakage (`reports/audit/data_audit.md`). Phase 0 is complete, so
+Phase 1 can start; E1.4 is the next priority.
 
 ---
 
@@ -66,8 +67,8 @@ Each experiment below should make at least one hypothesis more or less likely.
 Phase 0 must pass before any Phase 1-4 experiment is treated as a result. The
 gate exists because the original training images were overwritten. The training
 manifest (E0.1), evaluation harness (E0.2), frozen two-checkpoint baseline
-(E0.3), and contract tests (E0.4) now exist, so new numbers can be compared to a
-recorded baseline; the remaining gate work is the leakage audit (E0.5).
+(E0.3), contract tests (E0.4), and data/leakage audit (E0.5) now exist, so the
+gate is closed and new numbers can be compared to a recorded baseline.
 
 ### Experiment format
 
@@ -119,8 +120,8 @@ measurable before changing anything.
 **Why this is first:** the current `data/dataset_img/train` is the full 25,380-image
 export, not the original training subset, and the original PNGs are gone. E0.1
 has reconstructed the subset and frozen its manifest; the evaluation harness,
-baseline table, and contract tests now exist. The remaining gate work is the
-leakage audit (E0.5).
+baseline table, contract tests, and leakage audit now exist, so the Phase 0 gate
+is closed.
 
 ### E0.1 Reconstruct the 10,080-clip training manifest
 
@@ -213,7 +214,8 @@ output: `reports/baseline/best_audio_spoof_model_unweighted/`.
   broken key remap fails the test instead of loading silently.
 - **Artifact:** `tests/test_preprocessing.py`, `tests/test_model_loading.py`,
   and `tests/test_app_contract.py`.
-- **Status: complete (2026-11-14).** `make test` runs 116 tests and passes. The
+- **Status: complete (2026-11-14).** `make test` ran 116 tests at E0.4 and
+  passes (138 now with the E0.5 audit suite). The
   app now loads its checkpoint through the strict package loader and
   refuses to start on a missing or mismatched state dict; a deliberately broken
   prefix raises instead of loading silently. A full image-input rerun of both
@@ -236,6 +238,13 @@ output: `reports/baseline/best_audio_spoof_model_unweighted/`.
   each split, documents the dev reuse, and confirms no eval leakage into training
   or threshold selection.
 - **Artifact:** `reports/audit/data_audit.md` with counts and known exclusions.
+- **Status: complete (2026-11-14).** All 15 checks pass. No cross-split speaker,
+  filename, audio-hash, or image-hash collisions; zero training clips in dev/eval;
+  the 838 enrollment files are excluded; and every operating threshold traces to
+  dev only. The only duplicate content is the expected byte-identical overlap
+  between `data/derived/train_seed42/` and the full train export, both labelled
+  `train`. Reproduce with `make audit-data`. Reports:
+  `reports/audit/data_audit.md` and `reports/phase0/E0.5/README.md`.
 
 ### Phase 0 exit criteria
 
@@ -249,7 +258,8 @@ Phase 0 is complete only when all of the following are true:
       (E0.3, 2026-11-13: `reports/baseline/README.md`.)
 - [x] Preprocessing and model-loading tests pass.
       (E0.4, 2026-11-14: `make test`.)
-- [ ] The data audit finds no train/dev/eval leakage.
+- [x] The data audit finds no train/dev/eval leakage.
+      (E0.5, 2026-11-14: `make audit-data`; `reports/audit/data_audit.md`.)
 
 If any item fails, fix it before starting Phase 1.
 
@@ -509,17 +519,17 @@ safe to expose.
 
 ## 10. Prioritized next actions
 
-E0.1–E0.4 are complete. The remaining prioritized actions are:
+E0.1–E0.5 are complete, so Phase 0 is closed. The remaining prioritized actions
+are:
 
 | Priority | Experiment | Reason |
 |---:|---|---|
-| 1 | E0.5 | Last Phase 0 gate item: confirm no train/dev/eval leakage |
-| 2 | E1.4 | Cheapest high-information test: is the baseline using shortcuts? |
-| 3 | E1.2 | Clarifies whether the image rendering is doing real work |
-| 4 | E2.1 | Establishes the domain gap before investing in scaling |
-| 5 | E1.3 | Tests whether unfreezing is worth the compute |
-| 6 | E3.1 | Guides the data-vs-architecture decision |
-| 7 | E2.5 | Required before the app can report honest confidence |
+| 1 | E1.4 | Cheapest high-information test: is the baseline using shortcuts? |
+| 2 | E1.2 | Clarifies whether the image rendering is doing real work |
+| 3 | E2.1 | Establishes the domain gap before investing in scaling |
+| 4 | E1.3 | Tests whether unfreezing is worth the compute |
+| 5 | E3.1 | Guides the data-vs-architecture decision |
+| 6 | E2.5 | Required before the app can report honest confidence |
 
 Do not start a lower-priority experiment while a higher-priority gate item is
 unresolved, unless the user explicitly reprioritizes.

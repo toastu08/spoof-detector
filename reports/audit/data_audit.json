@@ -1,0 +1,748 @@
+{
+  "experiment": "E0.5",
+  "title": "Data and leakage audit",
+  "generated_at_utc": "2026-11-14T16:49:44.255351+00:00",
+  "command": "uv run python scripts/audit_data.py",
+  "git": {
+    "commit": "ef487b0f7e482e5829eadf194b51f8570192eb9f",
+    "dirty": true,
+    "status_porcelain": [
+      "M AGENTS.md",
+      " M README.md",
+      " M ROADMAP.md",
+      " M makefile",
+      "?? reports/audit/",
+      "?? reports/phase0/E0.5/",
+      "?? scripts/audit_data.py",
+      "?? src/spoof_detection/audit.py",
+      "?? tests/test_audit.py"
+    ]
+  },
+  "environment": {
+    "python": "3.14.8",
+    "platform": "Linux-7.2.9-201.fc44.x86_64-x86_64-with-glibc2.43",
+    "pandas": "3.1.1"
+  },
+  "inputs": {
+    "data_root": "data/LA",
+    "image_root": "data/dataset_img",
+    "derived_root": "data/derived/train_seed42",
+    "baseline_root": "reports/baseline",
+    "freeze_report": "reports/baseline/freeze_report.json",
+    "training_manifest": {
+      "path": "manifests/train_seed42.csv",
+      "sha256": "22f98abdf3392e04f7df3632809f81d033d5687773946cd103f5066846ed195e",
+      "expected_sha256": "22f98abdf3392e04f7df3632809f81d033d5687773946cd103f5066846ed195e",
+      "rows": 10080
+    },
+    "protocols": {
+      "train": {
+        "path": "data/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.train.trn.txt",
+        "sha256": "65a289e4009400b42bb4f1e47ac60938d93f7f595452d1f220d35defc3de8ab8"
+      },
+      "dev": {
+        "path": "data/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.dev.trl.txt",
+        "sha256": "2fedaebf1ba3ae1a9bb7d3ec916804ac237b4eee063a27fa92e6549f03d129c7"
+      },
+      "eval": {
+        "path": "data/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.eval.trl.txt",
+        "sha256": "84fce576efff092269a0a6ad247d2e9f2f7b4d4e25a4545efb2518da92708036"
+      }
+    },
+    "metadata": {
+      "train": {
+        "path": "data/dataset_img/train/metadata_train.csv",
+        "sha256": "4ad4e41451c2ce84dab1df49ee17175ce8a6d74734e2995a8ea917de20ce47cd"
+      },
+      "dev": {
+        "path": "data/dataset_img/dev/metadata_dev.csv",
+        "sha256": "6097d85f173bc0e852579f94c5c6551a12267e008feb1027f3ec576e105b3b36"
+      },
+      "eval": {
+        "path": "data/dataset_img/eval/metadata_eval.csv",
+        "sha256": "1ae85a9663647add8d33f7860a96be06fde48785b296de8456baf4a3a27d58a6"
+      }
+    }
+  },
+  "inventory": {
+    "train": {
+      "protocol_rows": 25380,
+      "bonafide": 2580,
+      "spoof": 22800,
+      "speakers": 20,
+      "attack_systems": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A06"
+      ],
+      "flac_files": 25380,
+      "protocol_flac_files": 25380,
+      "enrollment_flac_files": 0,
+      "image_files": 25380,
+      "bonafide_images": 2580,
+      "spoofed_images": 22800
+    },
+    "dev": {
+      "protocol_rows": 24844,
+      "bonafide": 2548,
+      "spoof": 22296,
+      "speakers": 20,
+      "attack_systems": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A06"
+      ],
+      "flac_files": 24986,
+      "protocol_flac_files": 24844,
+      "enrollment_flac_files": 142,
+      "image_files": 24844,
+      "bonafide_images": 2548,
+      "spoofed_images": 22296
+    },
+    "eval": {
+      "protocol_rows": 71237,
+      "bonafide": 7355,
+      "spoof": 63882,
+      "speakers": 67,
+      "attack_systems": [
+        "A07",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A12",
+        "A13",
+        "A14",
+        "A15",
+        "A16",
+        "A17",
+        "A18",
+        "A19"
+      ],
+      "flac_files": 71933,
+      "protocol_flac_files": 71237,
+      "enrollment_flac_files": 696,
+      "image_files": 71237,
+      "bonafide_images": 7355,
+      "spoofed_images": 63882
+    }
+  },
+  "checks": [
+    {
+      "id": "A.1",
+      "title": "ASVspoof 2019 LA layout and protocol hashes",
+      "status": "pass",
+      "detail": "layout, counts, and protocol SHA-256 values match the dataset spec",
+      "evidence": {
+        "problems": [],
+        "splits": {
+          "train": {
+            "protocol_rows": 25380,
+            "bonafide": 2580,
+            "spoof": 22800,
+            "flac_files": 25380,
+            "enrollment_files": 0,
+            "protocol_sha256": "65a289e4009400b42bb4f1e47ac60938d93f7f595452d1f220d35defc3de8ab8"
+          },
+          "dev": {
+            "protocol_rows": 24844,
+            "bonafide": 2548,
+            "spoof": 22296,
+            "flac_files": 24986,
+            "enrollment_files": 142,
+            "protocol_sha256": "2fedaebf1ba3ae1a9bb7d3ec916804ac237b4eee063a27fa92e6549f03d129c7"
+          },
+          "eval": {
+            "protocol_rows": 71237,
+            "bonafide": 7355,
+            "spoof": 63882,
+            "flac_files": 71933,
+            "enrollment_files": 696,
+            "protocol_sha256": "84fce576efff092269a0a6ad247d2e9f2f7b4d4e25a4545efb2518da92708036"
+          }
+        }
+      }
+    },
+    {
+      "id": "A.2",
+      "title": "train metadata and image alignment",
+      "status": "pass",
+      "detail": "25,380 rows align 1:1 with the train protocol; 25,380 images present, 0 missing, 0 orphaned",
+      "evidence": {
+        "protocol_rows": 25380,
+        "metadata_rows": 25380,
+        "protocol_problems": [],
+        "image_files": 25380,
+        "missing_images": 0,
+        "orphan_images": 0,
+        "wrong_class_folder": 0,
+        "wrong_filename_index": 0,
+        "first_missing": [],
+        "first_orphans": [],
+        "first_wrong_folder": [],
+        "first_wrong_name": []
+      }
+    },
+    {
+      "id": "A.3",
+      "title": "dev metadata and image alignment",
+      "status": "pass",
+      "detail": "24,844 rows align 1:1 with the dev protocol; 24,844 images present, 0 missing, 0 orphaned",
+      "evidence": {
+        "protocol_rows": 24844,
+        "metadata_rows": 24844,
+        "protocol_problems": [],
+        "image_files": 24844,
+        "missing_images": 0,
+        "orphan_images": 0,
+        "wrong_class_folder": 0,
+        "wrong_filename_index": 0,
+        "first_missing": [],
+        "first_orphans": [],
+        "first_wrong_folder": [],
+        "first_wrong_name": []
+      }
+    },
+    {
+      "id": "A.4",
+      "title": "eval metadata and image alignment",
+      "status": "pass",
+      "detail": "71,237 rows align 1:1 with the eval protocol; 71,237 images present, 0 missing, 0 orphaned",
+      "evidence": {
+        "protocol_rows": 71237,
+        "metadata_rows": 71237,
+        "protocol_problems": [],
+        "image_files": 71237,
+        "missing_images": 0,
+        "orphan_images": 0,
+        "wrong_class_folder": 0,
+        "wrong_filename_index": 0,
+        "first_missing": [],
+        "first_orphans": [],
+        "first_wrong_folder": [],
+        "first_wrong_name": []
+      }
+    },
+    {
+      "id": "B.1",
+      "title": "speaker and audio filename isolation",
+      "status": "pass",
+      "detail": "no speaker or audio filename overlap between train, dev, and eval",
+      "evidence": {
+        "speaker_counts": {
+          "train": 20,
+          "dev": 20,
+          "eval": 67
+        },
+        "speaker_overlap": {
+          "train-dev": [],
+          "train-eval": [],
+          "dev-eval": []
+        },
+        "audio_name_overlap": {
+          "train-dev": 0,
+          "train-eval": 0,
+          "dev-eval": 0
+        },
+        "attack_systems": {
+          "train": [
+            "A01",
+            "A02",
+            "A03",
+            "A04",
+            "A05",
+            "A06"
+          ],
+          "dev": [
+            "A01",
+            "A02",
+            "A03",
+            "A04",
+            "A05",
+            "A06"
+          ],
+          "eval": [
+            "A07",
+            "A08",
+            "A09",
+            "A10",
+            "A11",
+            "A12",
+            "A13",
+            "A14",
+            "A15",
+            "A16",
+            "A17",
+            "A18",
+            "A19"
+          ]
+        }
+      }
+    },
+    {
+      "id": "B.2",
+      "title": "attack-system coverage and unseen eval attacks",
+      "status": "pass",
+      "detail": "train and dev share A01-A06 by design; eval uses only unseen A07-A19",
+      "evidence": {
+        "attack_systems": {
+          "train": [
+            "A01",
+            "A02",
+            "A03",
+            "A04",
+            "A05",
+            "A06"
+          ],
+          "dev": [
+            "A01",
+            "A02",
+            "A03",
+            "A04",
+            "A05",
+            "A06"
+          ],
+          "eval": [
+            "A07",
+            "A08",
+            "A09",
+            "A10",
+            "A11",
+            "A12",
+            "A13",
+            "A14",
+            "A15",
+            "A16",
+            "A17",
+            "A18",
+            "A19"
+          ]
+        },
+        "train_dev_shared": [
+          "A01",
+          "A02",
+          "A03",
+          "A04",
+          "A05",
+          "A06"
+        ],
+        "eval_overlap_with_train_or_dev": []
+      }
+    },
+    {
+      "id": "B.3",
+      "title": "audio content duplicates",
+      "status": "pass",
+      "detail": "122,299 files hashed; no cross-split audio duplicates; 0 unexplained within-split groups",
+      "evidence": {
+        "hashed_files": 122299,
+        "unique_hashes": 122299,
+        "cross_split_groups": 0,
+        "cross_split_examples": [],
+        "within_split_groups": 0,
+        "within_split_classes": {},
+        "within_split_explained_groups": 0,
+        "within_split_unexplained_groups": 0,
+        "within_split_examples": [],
+        "within_split_unexplained_examples": [],
+        "note": "within-split duplicates would indicate repeated corpus files"
+      }
+    },
+    {
+      "id": "B.4",
+      "title": "image content duplicates",
+      "status": "pass",
+      "detail": "131,541 files hashed; no cross-split image duplicates; 0 unexplained within-split groups",
+      "evidence": {
+        "hashed_files": 131541,
+        "unique_hashes": 121461,
+        "cross_split_groups": 0,
+        "cross_split_examples": [],
+        "within_split_groups": 10080,
+        "within_split_classes": {
+          "derived+export": 10080
+        },
+        "within_split_explained_groups": 10080,
+        "within_split_unexplained_groups": 0,
+        "within_split_examples": [
+          {
+            "sha256": "0211ecc96d7e2a12ab0a680eb4f3474676e4bf4c7d05bad77916e9618ead3831",
+            "split": "train",
+            "paths": [
+              "data/dataset_img/train/bonafide/sample_0.png",
+              "data/derived/train_seed42/bonafide/sample_677.png"
+            ]
+          },
+          {
+            "sha256": "a4107c99662feb70ef474644daceab82956e14ee89760045a5720603b51234d8",
+            "split": "train",
+            "paths": [
+              "data/dataset_img/train/bonafide/sample_1.png",
+              "data/derived/train_seed42/bonafide/sample_8593.png"
+            ]
+          },
+          {
+            "sha256": "546188b89d68130d3a5657e75848096bb0f1dd418111f6f9f56d5a95126c3bfd",
+            "split": "train",
+            "paths": [
+              "data/dataset_img/train/bonafide/sample_10.png",
+              "data/derived/train_seed42/bonafide/sample_1142.png"
+            ]
+          },
+          {
+            "sha256": "d545cbccbd1738f5eec38aa9541d284cae7e8d7813eab14ad50d919fbd6c5bc1",
+            "split": "train",
+            "paths": [
+              "data/dataset_img/train/bonafide/sample_100.png",
+              "data/derived/train_seed42/bonafide/sample_3408.png"
+            ]
+          },
+          {
+            "sha256": "f766660c4dc7b3674c49b8fdb08f724fcb064ffe6443f938eb0cbf94cda0188e",
+            "split": "train",
+            "paths": [
+              "data/dataset_img/train/bonafide/sample_1000.png",
+              "data/derived/train_seed42/bonafide/sample_8400.png"
+            ]
+          },
+          {
+            "sha256": "48b68f174939deb43c30a4a5aabf816d1ffeeb98141aedef9aa0ff0ef3830180",
+            "split": "train",
+            "paths": [
+              "data/dataset_img/train/bonafide/sample_1001.png",
+              "data/derived/train_seed42/bonafide/sample_4775.png"
+            ]
+          },
+          {
+            "sha256": "93856cd59caca5c73136b7625662f179c0bae1d7bd8576907adc90cd87dd0153",
+            "split": "train",
+            "paths": [
+              "data/dataset_img/train/bonafide/sample_1002.png",
+              "data/derived/train_seed42/bonafide/sample_1787.png"
+            ]
+          },
+          {
+            "sha256": "c48bd448cfa1fe1842058fbe032584d1f37d6fb45178b07ceb2a821f2391b11f",
+            "split": "train",
+            "paths": [
+              "data/dataset_img/train/bonafide/sample_1003.png",
+              "data/derived/train_seed42/bonafide/sample_4814.png"
+            ]
+          },
+          {
+            "sha256": "8ee350a73003d8f76d39ac87ad301d913de1216239ecba4c728f2e65251cc9ac",
+            "split": "train",
+            "paths": [
+              "data/dataset_img/train/bonafide/sample_1004.png",
+              "data/derived/train_seed42/bonafide/sample_3528.png"
+            ]
+          },
+          {
+            "sha256": "63f41335b41db33e1e571e3a6c0c8bffdc4172d41bc1ac4631e9496bc537f70e",
+            "split": "train",
+            "paths": [
+              "data/dataset_img/train/bonafide/sample_1005.png",
+              "data/derived/train_seed42/bonafide/sample_2416.png"
+            ]
+          },
+          {
+            "sha256": "73d0083a93e3565adb44425b18b03441aa3f2248c3b28a21d255551e12cce2fb",
+            "split": "train",
+            "paths": [
+              "data/dataset_img/train/bonafide/sample_1006.png",
+              "data/derived/train_seed42/bonafide/sample_6015.png"
+            ]
+          },
+          {
+            "sha256": "f36aee4351dc2a000eb976a4f8ec3a95a017c4dce9bb6523088405f19e33234a",
+            "split": "train",
+            "paths": [
+              "data/dataset_img/train/bonafide/sample_1007.png",
+              "data/derived/train_seed42/bonafide/sample_8701.png"
+            ]
+          },
+          {
+            "sha256": "b7edec0a6a21868e5cc57adfe2a9b30d39e164b47428699349ce620a37a8cc9c",
+            "split": "train",
+            "paths": [
+              "data/dataset_img/train/bonafide/sample_1008.png",
+              "data/derived/train_seed42/bonafide/sample_4901.png"
+            ]
+          },
+          {
+            "sha256": "05d558763518be2b855fc6ebc44dbc36d23c5d73e7385dee0791c1cc59ef85f7",
+            "split": "train",
+            "paths": [
+              "data/dataset_img/train/bonafide/sample_1009.png",
+              "data/derived/train_seed42/bonafide/sample_1820.png"
+            ]
+          },
+          {
+            "sha256": "994fe295373e258973025f9a559dd517cd36389cd5f3aca908ecbd384e7c74d4",
+            "split": "train",
+            "paths": [
+              "data/dataset_img/train/bonafide/sample_101.png",
+              "data/derived/train_seed42/bonafide/sample_474.png"
+            ]
+          },
+          {
+            "sha256": "48463166ab2ae3087509880fc27a942b23d0fe8a7a23442fc284a40078fe5bb5",
+            "split": "train",
+            "paths": [
+              "data/dataset_img/train/bonafide/sample_1010.png",
+              "data/derived/train_seed42/bonafide/sample_1463.png"
+            ]
+          },
+          {
+            "sha256": "c1134034b5f23629c3624b03292d1da1a91c2a99662e18373443de65f3422c95",
+            "split": "train",
+            "paths": [
+              "data/dataset_img/train/bonafide/sample_1011.png",
+              "data/derived/train_seed42/bonafide/sample_7461.png"
+            ]
+          },
+          {
+            "sha256": "a89d1875895a21bd1fe12ce68455fe58d868877041098be70bb88710b44a8d97",
+            "split": "train",
+            "paths": [
+              "data/dataset_img/train/bonafide/sample_1012.png",
+              "data/derived/train_seed42/bonafide/sample_8242.png"
+            ]
+          },
+          {
+            "sha256": "5f1f6ce08cdc6acaa43243cf19d7eb28153ec1f7049fc10aaefb0d4049ba5d7b",
+            "split": "train",
+            "paths": [
+              "data/dataset_img/train/bonafide/sample_1013.png",
+              "data/derived/train_seed42/bonafide/sample_7766.png"
+            ]
+          },
+          {
+            "sha256": "f8a10a4d7a189936b82b5b8b419fac3213619de112e0a6c9e7743d494fd64371",
+            "split": "train",
+            "paths": [
+              "data/dataset_img/train/bonafide/sample_1014.png",
+              "data/derived/train_seed42/bonafide/sample_5742.png"
+            ]
+          }
+        ],
+        "within_split_unexplained_examples": [],
+        "note": "within-train image duplicates are allowed only between the reconstructed train subset and the full train export"
+      }
+    },
+    {
+      "id": "C.1",
+      "title": "training manifest integrity against the train protocol",
+      "status": "pass",
+      "detail": "10,080 rows (2,580 bonafide / 7,500 spoof) match the frozen manifest hash and their train protocol rows",
+      "evidence": {
+        "path": "/home/toastu/Research/Spoof Detection/manifests/train_seed42.csv",
+        "sha256": "22f98abdf3392e04f7df3632809f81d033d5687773946cd103f5066846ed195e",
+        "expected_sha256": "22f98abdf3392e04f7df3632809f81d033d5687773946cd103f5066846ed195e",
+        "rows": 10080,
+        "label_counts": {
+          "0": 2580,
+          "1": 7500
+        }
+      }
+    },
+    {
+      "id": "C.2",
+      "title": "training manifest file and hash integrity",
+      "status": "pass",
+      "detail": "all 10,080 source FLACs and derived images exist and match their recorded SHA-256",
+      "evidence": {
+        "rows": 10080,
+        "derived_root": "/home/toastu/Research/Spoof Detection/data/derived/train_seed42",
+        "hashes_checked": true,
+        "missing_audio": 0,
+        "missing_images": 0,
+        "wrong_class_folder": 0,
+        "audio_hash_mismatches": 0,
+        "image_hash_mismatches": 0,
+        "first_missing_audio": [],
+        "first_missing_images": [],
+        "first_wrong_folder": [],
+        "first_audio_hash_mismatches": [],
+        "first_image_hash_mismatches": [],
+        "derived_image_counts": {
+          "bonafide": 2580,
+          "spoofed": 7500
+        }
+      }
+    },
+    {
+      "id": "C.3",
+      "title": "training manifest isolation from dev and eval",
+      "status": "pass",
+      "detail": "zero training clips, speakers, or audio contents appear in dev or eval",
+      "evidence": {
+        "dev_name_overlap": [],
+        "dev_speaker_overlap": [],
+        "eval_name_overlap": [],
+        "eval_speaker_overlap": [],
+        "dev_content_hash_overlap": [],
+        "eval_content_hash_overlap": []
+      }
+    },
+    {
+      "id": "D.1",
+      "title": "enrollment-file exclusion",
+      "status": "pass",
+      "detail": "838 enrollment FLACs (142 dev / 696 eval) are excluded from the CM protocols and all image exports",
+      "evidence": {
+        "train": {
+          "extra_flac_files": 0,
+          "enrollment_prefixed": 0,
+          "unexpected_extra_files": [],
+          "expected_enrollment_files": 0
+        },
+        "dev": {
+          "extra_flac_files": 142,
+          "enrollment_prefixed": 142,
+          "unexpected_extra_files": [],
+          "expected_enrollment_files": 142
+        },
+        "eval": {
+          "extra_flac_files": 696,
+          "enrollment_prefixed": 696,
+          "unexpected_extra_files": [],
+          "expected_enrollment_files": 696
+        },
+        "total_enrollment_files": 838
+      }
+    },
+    {
+      "id": "E.1",
+      "title": "baseline threshold lineage (dev only)",
+      "status": "pass",
+      "detail": "every checkpoint selects its EER threshold on dev only and transfers it unchanged to eval",
+      "evidence": {
+        "best_audio_spoof_model_unweighted": {
+          "selected_on": "dev",
+          "source": "in_run_dev",
+          "dev_eer": 0.8397408723831177,
+          "recomputed_dev_threshold": 0.83974087,
+          "dev_threshold_delta": 2.3831177031752304e-09,
+          "eval_operating_dev_eer": 0.8397408723831177,
+          "eval_operating_threshold_names": [
+            "dev_eer",
+            "fixed_0.5"
+          ],
+          "policy": "Only the dev EER threshold is selected on data. EER thresholds reported for other splits are descriptive DET points, not operating thresholds."
+        },
+        "best_audio_spoof_model_weighted": {
+          "selected_on": "dev",
+          "source": "in_run_dev",
+          "dev_eer": 0.7520200610160828,
+          "recomputed_dev_threshold": 0.75202006,
+          "dev_threshold_delta": 1.016082773475091e-09,
+          "eval_operating_dev_eer": 0.7520200610160828,
+          "eval_operating_threshold_names": [
+            "dev_eer",
+            "fixed_0.5"
+          ],
+          "policy": "Only the dev EER threshold is selected on data. EER thresholds reported for other splits are descriptive DET points, not operating thresholds."
+        }
+      }
+    },
+    {
+      "id": "E.2",
+      "title": "baseline score/protocol alignment",
+      "status": "pass",
+      "detail": "every baseline score CSV maps 1:1 to its protocol split with the correct labels, speakers, systems, and source paths",
+      "evidence": {
+        "best_audio_spoof_model_unweighted": {
+          "dev": {
+            "rows": 24844,
+            "protocol_rows": 24844,
+            "recorded_sample_counts": {
+              "total": 24844,
+              "bonafide": 2548,
+              "spoof": 22296
+            },
+            "expected_sample_counts": {
+              "total": 24844,
+              "bonafide": 2548,
+              "spoof": 22296
+            }
+          },
+          "eval": {
+            "rows": 71237,
+            "protocol_rows": 71237,
+            "recorded_sample_counts": {
+              "total": 71237,
+              "bonafide": 7355,
+              "spoof": 63882
+            },
+            "expected_sample_counts": {
+              "total": 71237,
+              "bonafide": 7355,
+              "spoof": 63882
+            }
+          }
+        },
+        "best_audio_spoof_model_weighted": {
+          "dev": {
+            "rows": 24844,
+            "protocol_rows": 24844,
+            "recorded_sample_counts": {
+              "total": 24844,
+              "bonafide": 2548,
+              "spoof": 22296
+            },
+            "expected_sample_counts": {
+              "total": 24844,
+              "bonafide": 2548,
+              "spoof": 22296
+            }
+          },
+          "eval": {
+            "rows": 71237,
+            "protocol_rows": 71237,
+            "recorded_sample_counts": {
+              "total": 71237,
+              "bonafide": 7355,
+              "spoof": 63882
+            },
+            "expected_sample_counts": {
+              "total": 71237,
+              "bonafide": 7355,
+              "spoof": 63882
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "E.3",
+      "title": "baseline artifact identity",
+      "status": "pass",
+      "detail": "both baseline checkpoints and the training manifest match the frozen E0.3 audit",
+      "evidence": {
+        "freeze_manifest_sha256": "22f98abdf3392e04f7df3632809f81d033d5687773946cd103f5066846ed195e",
+        "best_audio_spoof_model_unweighted": {
+          "sha256": "abf8d9c9169d363bf9e9076b61689056a78d814c95de9634aea9acf96afc54d8",
+          "total_parameters": 11242305
+        },
+        "best_audio_spoof_model_weighted": {
+          "sha256": "214e2c813c4f48602ddf124590daf20a008f18385a5339029736a6c16837eb93",
+          "total_parameters": 11242305
+        }
+      }
+    }
+  ],
+  "conclusion": {
+    "status": "pass",
+    "passed": true,
+    "failures": [],
+    "skipped": [],
+    "policy": "Dev is a documented model-selection split (early stopping and E0.3 threshold selection). Eval is the clean estimate: no eval clip entered training, early stopping, or threshold selection."
+  }
+}
