@@ -138,6 +138,10 @@ class EvaluationCLITest(unittest.TestCase):
         self.assertEqual(first_metrics["splits"]["external"]["metrics"]["sample_counts"]["total"], 8)
         self.assertIsNone(first_metrics["thresholds"]["dev_eer"])
         self.assertFalse(first_metrics["partial"])
+        self.assertIsNone(first_metrics["frontend"])
+        self.assertEqual(
+            first_metrics["preprocessing"]["version"], "mel128-magma-4s-v1"
+        )
 
         code, output_dir = self._run()
         self.assertEqual(code, 0)
@@ -148,6 +152,19 @@ class EvaluationCLITest(unittest.TestCase):
             first_metrics["splits"]["external"]["metrics"],
             second_metrics["splits"]["external"]["metrics"],
         )
+
+    def test_frontend_label_is_recorded(self) -> None:
+        code, output_dir = self._run("--frontend", "mel64")
+        self.assertEqual(code, 0)
+        metrics = json.loads(
+            (output_dir / "metrics.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(metrics["frontend"], "mel64")
+        self.assertEqual(metrics["preprocessing"]["frontend"], "mel64")
+        self.assertEqual(
+            metrics["preprocessing"]["version"], "mel64-magma-4s-v1"
+        )
+        self.assertIn("params", metrics["preprocessing"])
 
     def test_partial_run_uses_separate_directory(self) -> None:
         output_root = self.root / "partial-root"

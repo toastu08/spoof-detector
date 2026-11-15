@@ -3,7 +3,7 @@
 Typical usage::
 
     uv run python -m spoof_detection.evaluate \
-        --checkpoint Models/Itteration1/best_audio_spoof_model_unweighted.pth \
+        --checkpoint Models/Iteration1/best_audio_spoof_model_unweighted.pth \
         --asvspoof dev eval \
         --source image \
         --output-root reports/baseline
@@ -47,6 +47,7 @@ from tqdm import tqdm
 
 from . import preprocess
 from .dataset import repo_relative, sha256_file
+from .frontends import FRONTEND_ORDER, frontend_payload
 from .metrics import compute_eer, summarize_split
 from .model import (
     AudioSpoofDetector,
@@ -118,6 +119,7 @@ class EvaluationConfig:
     experiment_id: str
     title: str
     command: str
+    frontend: str | None = None
 
 
 def records_to_frame(records: Sequence[ClipRecord]) -> pd.DataFrame:
@@ -1072,6 +1074,7 @@ def run_evaluation(config: EvaluationConfig) -> list[Path]:
         metrics: dict[str, object] = {
             "experiment": config.experiment_id,
             "title": config.title,
+            "frontend": config.frontend,
             "generated_at_utc": datetime.now(timezone.utc).isoformat(),
             "command": config.command,
             "checkpoint": {
@@ -1096,21 +1099,25 @@ def run_evaluation(config: EvaluationConfig) -> list[Path]:
                 "cudnn_benchmark": False,
                 "cudnn_deterministic": True,
             },
-            "preprocessing": {
-                "version": preprocess.PREPROCESSING_VERSION,
-                "sample_rate": preprocess.SAMPLE_RATE,
-                "target_seconds": preprocess.TARGET_SECONDS,
-                "target_length": preprocess.TARGET_LENGTH,
-                "n_mels": preprocess.N_MELS,
-                "colormap": preprocess.COLORMAP,
-                "power_to_db_ref": "np.max",
-                "resize": [
-                    preprocess.INFERENCE_SIZE,
-                    preprocess.INFERENCE_SIZE,
-                ],
-                "imagenet_mean": list(preprocess.IMAGENET_MEAN),
-                "imagenet_std": list(preprocess.IMAGENET_STD),
-            },
+            "preprocessing": (
+                frontend_payload(config.frontend)
+                if config.frontend is not None
+                else {
+                    "version": preprocess.PREPROCESSING_VERSION,
+                    "sample_rate": preprocess.SAMPLE_RATE,
+                    "target_seconds": preprocess.TARGET_SECONDS,
+                    "target_length": preprocess.TARGET_LENGTH,
+                    "n_mels": preprocess.N_MELS,
+                    "colormap": preprocess.COLORMAP,
+                    "power_to_db_ref": "np.max",
+                    "resize": [
+                        preprocess.INFERENCE_SIZE,
+                        preprocess.INFERENCE_SIZE,
+                    ],
+                    "imagenet_mean": list(preprocess.IMAGENET_MEAN),
+                    "imagenet_std": list(preprocess.IMAGENET_STD),
+                }
+            ),
             "thresholds": {
                 "fixed_0.5": FIXED_THRESHOLD,
                 "dev_eer": dev_threshold,
@@ -1194,12 +1201,12 @@ def build_parser() -> argparse.ArgumentParser:
         epilog=(
             "Examples:\n"
             "  uv run python -m spoof_detection.evaluate \\\n"
-            "    --checkpoint Models/Itteration1/"
+            "    --checkpoint Models/Iteration1/"
             "best_audio_spoof_model_unweighted.pth \\\n"
             "    --asvspoof dev eval --source image \\\n"
             "    --output-root reports/baseline\n\n"
             "  uv run python -m spoof_detection.evaluate \\\n"
-            "    --checkpoint Models/Itteration1/"
+            "    --checkpoint Models/Iteration1/"
             "best_audio_spoof_model_unweighted.pth \\\n"
             "    --manifest manifests/train_seed42.csv --source image \\\n"
             "    --split-name train_seed42 --output-dir /tmp/opencode/e0.2\n"
@@ -1306,6 +1313,15 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--frontend",
+        choices=FRONTEND_ORDER,
+        default=None,
+        help=(
+            "optional front-end label recorded in metrics.json preprocessing "
+            "provenance; does not change how PNGs are scored"
+        ),
+    )
+    parser.add_argument(
         "--experiment-id",
         default="unlabelled",
         help="experiment identifier recorded in metrics.json (default: unlabelled)",
@@ -1402,6 +1418,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         command=shlex.join(
             [sys.executable, "-m", "spoof_detection.evaluate", *argv_list]
         ),
+        frontend=args.frontend,
     )
 
     try:

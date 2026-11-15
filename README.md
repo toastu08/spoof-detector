@@ -195,8 +195,8 @@ Score both first-iteration checkpoints on the full dev and eval splits:
 make evaluate
 # equivalent:
 uv run python -m spoof_detection.evaluate \
-  --checkpoint Models/Itteration1/best_audio_spoof_model_unweighted.pth \
-  --checkpoint Models/Itteration1/best_audio_spoof_model_weighted.pth \
+  --checkpoint Models/Iteration1/best_audio_spoof_model_unweighted.pth \
+  --checkpoint Models/Iteration1/best_audio_spoof_model_weighted.pth \
   --asvspoof dev eval --source image --output-root reports/baseline \
   --experiment-id E0.3 --title "Frozen two-checkpoint baseline"
 ```
@@ -246,7 +246,7 @@ path column (`image_path`/`img_path` for `--source image`, or
 
 ```bash
 uv run python -m spoof_detection.evaluate \
-  --checkpoint Models/Itteration1/best_audio_spoof_model_unweighted.pth \
+  --checkpoint Models/Iteration1/best_audio_spoof_model_unweighted.pth \
   --manifest path/to/manifest.csv --source image --split-name my_corpus \
   --output-dir reports/external/my_corpus
 ```

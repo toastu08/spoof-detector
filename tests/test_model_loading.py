@@ -26,13 +26,13 @@ from spoof_detection.model import (  # noqa: E402
 UNWEIGHTED_CHECKPOINT = (
     REPO_ROOT
     / "Models"
-    / "Itteration1"
+    / "Iteration1"
     / "best_audio_spoof_model_unweighted.pth"
 )
 WEIGHTED_CHECKPOINT = (
     REPO_ROOT
     / "Models"
-    / "Itteration1"
+    / "Iteration1"
     / "best_audio_spoof_model_weighted.pth"
 )
 ROOT_UNWEIGHTED_CHECKPOINT = (

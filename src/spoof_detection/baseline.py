@@ -46,11 +46,11 @@ EXPERIMENT_ID = "E0.3"
 DEFAULT_CHECKPOINTS = (
     REPO_ROOT
     / "Models"
-    / "Itteration1"
+    / "Iteration1"
     / "best_audio_spoof_model_unweighted.pth",
     REPO_ROOT
     / "Models"
-    / "Itteration1"
+    / "Iteration1"
     / "best_audio_spoof_model_weighted.pth",
 )
 DEFAULT_BASELINE_ROOT = REPO_ROOT / "reports" / "baseline"

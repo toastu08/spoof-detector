@@ -88,7 +88,7 @@ was trained on.
 | `2_model.ipynb` | Original training/evaluation notebook | Accessible via python-notebook MCP |
 | `app.py` | FastAPI inference demo | Working; strict checkpoint load and shared preprocessing; see section 4.5 |
 | `templates/index.html` | Browser UI for the demo | Working |
-| `Models/Itteration1/` | First-iteration checkpoints and `MODELS.md` | Existing; keep spelling for compatibility |
+| `Models/Iteration1/` | First-iteration checkpoints, `MODELS.md`, and E1.1 probes under `e_1_1/` | Existing; renamed from the misspelled `Models/Itteration1/` on 2026-11-16 |
 | `best_audio_spoof_model_unweighted.pth` | Root checkpoint actually loaded by `app.py` | Existing; do not overwrite |
 | `data/LA/` | Extracted ASVspoof 2019 LA audio and protocols | Existing; do not overwrite |
 | `data/archive.zip` | Kaggle download zip of the extracted `data/LA` tree | Deleted 2026-11-07 after verification; hashes kept in `manifests/asvspoof2019_la.meta.json` |
@@ -213,8 +213,8 @@ Checkpoints:
 
 | Path | Weighting | Notes |
 |---|---|---|
-| `Models/Itteration1/best_audio_spoof_model_unweighted.pth` | No class weights | First-iteration unweighted model |
-| `Models/Itteration1/best_audio_spoof_model_weighted.pth` | Spoof `pos_weight` 0.344 (≈2.91× bonafide) | First-iteration weighted model |
+| `Models/Iteration1/best_audio_spoof_model_unweighted.pth` | No class weights | First-iteration unweighted model |
+| `Models/Iteration1/best_audio_spoof_model_weighted.pth` | Spoof `pos_weight` 0.344 (≈2.91× bonafide) | First-iteration weighted model |
 | `best_audio_spoof_model_unweighted.pth` | No class weights | Root duplicate loaded by `app.py` |
 
 The checkpoints use a `network.` key prefix. Both the evaluation harness and
@@ -559,8 +559,10 @@ include a `MODELS.md` with at least:
 - evaluation table with split, attack subset, threshold, sample count
 - known limitations and failure cases
 
-Do not overwrite `Models/Itteration1/`; keep its existing spelling for
-compatibility.
+Do not overwrite the legacy checkpoints already in `Models/Iteration1/`. The
+directory was renamed from the misspelled `Models/Itteration1/` on 2026-11-16;
+keep the new spelling for anything written from now on. Nested experiment
+checkpoints go under `Models/Iteration1/e_1_1/`.
 
 ### G7. No silent checkpoint mismatches
 
@@ -667,7 +669,7 @@ uv run python scripts/audit_data.py --skip-hashes
 
 # Smoke-test the harness on a deterministic 100-clip-per-split subset
 uv run python -m spoof_detection.evaluate \
-  --checkpoint Models/Itteration1/best_audio_spoof_model_unweighted.pth \
+  --checkpoint Models/Iteration1/best_audio_spoof_model_unweighted.pth \
   --asvspoof dev eval --source image --limit 100 \
   --output-dir /tmp/opencode/e0.2-smoke
 
@@ -756,7 +758,7 @@ For any new task:
 ## 10. Related documents
 
 - [`ROADMAP.md`](./ROADMAP.md): prioritized research roadmap, phases 0-4.
-- [`Models/Itteration1/MODELS.md`](./Models/Itteration1/MODELS.md): first-iteration
+- [`Models/Iteration1/MODELS.md`](./Models/Iteration1/MODELS.md): first-iteration
   model notes.
 - [`reports/phase0/E0.1/E0.1_provenance.md`](./reports/phase0/E0.1/E0.1_provenance.md):
   E0.1 reconstruction provenance, verification, and limitations.
