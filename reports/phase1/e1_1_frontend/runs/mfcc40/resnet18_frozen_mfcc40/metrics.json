@@ -1,0 +1,1382 @@
+{
+  "experiment": "E1.1",
+  "title": "E1.1 front-end probe: mfcc40",
+  "frontend": "mfcc40",
+  "generated_at_utc": "2026-11-20T16:03:30.752279+00:00",
+  "command": "'/home/toastu/Research/Spoof Detection/.venv/bin/python' -m spoof_detection.evaluate --checkpoint '/home/toastu/Research/Spoof Detection/Models/Iteration1/e_1_1/mfcc40/resnet18_frozen_mfcc40.pth' --asvspoof dev eval --source image --data-root '/home/toastu/Research/Spoof Detection/data/LA' --image-root '/home/toastu/Research/Spoof Detection/data/derived/e1_1_frontend/mfcc40' --output-root '/home/toastu/Research/Spoof Detection/reports/phase1/e1_1_frontend/runs/mfcc40' --frontend mfcc40 --experiment-id E1.1 --title 'E1.1 front-end probe: mfcc40' --batch-size 64 --num-workers 4 --device auto",
+  "checkpoint": {
+    "path": "Models/Iteration1/e_1_1/mfcc40/resnet18_frozen_mfcc40.pth",
+    "sha256": "4023e84c804bbeb8dbe8abe1bae92e70a1db4cfc5ec1925beeec8cbc8e4df138",
+    "state_dict_keys": 124,
+    "remapped_keys": 124,
+    "missing_keys": [],
+    "unexpected_keys": [],
+    "total_parameters": 11242305,
+    "backbone_parameters": 11176512,
+    "head_parameters": 65793,
+    "head_state_sha256": "662046a9533ec19747fcd173c99d21e157f8e05029314c3302a150f64975a3b2",
+    "head_last_bias": -0.2014681100845337,
+    "batch_norm_steps": [
+      3150
+    ]
+  },
+  "inference": {
+    "source": "image",
+    "batch_size": 64,
+    "num_workers": 4,
+    "device": "cuda",
+    "cudnn_benchmark": false,
+    "cudnn_deterministic": true
+  },
+  "preprocessing": {
+    "version": "mfcc40-magma-4s-v1",
+    "frontend": "mfcc40",
+    "description": "40 MFCC coefficients (no deltas), magma, flipped",
+    "params": {
+      "n_mfcc": 40,
+      "n_fft": 2048,
+      "hop_length": 512
+    },
+    "sample_rate": 16000,
+    "target_seconds": 4,
+    "target_length": 64000,
+    "colormap": "magma",
+    "render": "plt.imsave(cmap='magma', origin='lower')",
+    "resize": [
+      224,
+      224
+    ],
+    "imagenet_mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "imagenet_std": [
+      0.229,
+      0.224,
+      0.225
+    ]
+  },
+  "thresholds": {
+    "fixed_0.5": 0.5,
+    "dev_eer": 0.844173789024353,
+    "selected_on": "dev",
+    "source": "in_run_dev",
+    "policy": "Only the dev EER threshold is selected on data. EER thresholds reported for other splits are descriptive DET points, not operating thresholds."
+  },
+  "partial": false,
+  "limit": null,
+  "sample_selection": "all records",
+  "environment": {
+    "python": "3.14.8",
+    "platform": "Linux-7.2.9-201.fc44.x86_64-x86_64-with-glibc2.43",
+    "torch": "2.15.0+cu132",
+    "torchvision": "0.29.2+cu132",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "librosa": "1.0.0",
+    "matplotlib": "3.11.2",
+    "cuda_available": true,
+    "cudnn_version": 92600,
+    "device": "cuda",
+    "device_name": "NVIDIA GeForce RTX 3050 Laptop GPU"
+  },
+  "git": {
+    "commit": "9881dbf6a5cafe8fe566f035d32b86b00a8cba21",
+    "dirty": true,
+    "status_porcelain": [
+      "?? Models/Iteration1/e_1_1/linear_stft/",
+      "?? Models/Iteration1/e_1_1/mel128/",
+      "?? Models/Iteration1/e_1_1/mel256/",
+      "?? Models/Iteration1/e_1_1/mel64/",
+      "?? Models/Iteration1/e_1_1/mfcc40/",
+      "?? Models/Iteration1/e_1_1/randproj128/",
+      "?? manifests/e1_1_frontend/",
+      "?? reports/phase1/e1_1_frontend/runs/"
+    ]
+  },
+  "splits": {
+    "dev": {
+      "provenance": {
+        "dataset": "ASVspoof 2019 LA",
+        "split": "dev",
+        "source": "image",
+        "data_root": "data/LA",
+        "protocol_path": "data/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.dev.trl.txt",
+        "protocol_sha256": "2fedaebf1ba3ae1a9bb7d3ec916804ac237b4eee063a27fa92e6549f03d129c7",
+        "image_root": "data/derived/e1_1_frontend/mfcc40",
+        "metadata_path": "data/derived/e1_1_frontend/mfcc40/dev/metadata_dev.csv",
+        "metadata_sha256": "53e90312369fb7a9db34a643213fb13634e2c8f9894519715085c0e8489e730a"
+      },
+      "attack_subset": "A01-A06",
+      "metrics": {
+        "sample_counts": {
+          "total": 24844,
+          "bonafide": 2548,
+          "spoof": 22296
+        },
+        "attack_ids": [
+          "A01",
+          "A02",
+          "A03",
+          "A04",
+          "A05",
+          "A06"
+        ],
+        "speaker_count": 20,
+        "score_summary": {
+          "min": 0.010126716457307339,
+          "max": 1.0,
+          "mean": 0.8845805041715407
+        },
+        "eer": 0.1448666760734268,
+        "eer_threshold_descriptive": 0.844173789024353,
+        "auc": 0.9327338671247252,
+        "calibration": {
+          "brier": 0.05606883913639478,
+          "ece": 0.014140783810624918,
+          "n_bins": 10,
+          "bins": [
+            {
+              "bin": 0,
+              "lower": 0.0,
+              "upper": 0.1,
+              "count": 256,
+              "mean_score": 0.06395727155904751,
+              "spoof_rate": 0.08984375
+            },
+            {
+              "bin": 1,
+              "lower": 0.1,
+              "upper": 0.2,
+              "count": 395,
+              "mean_score": 0.15187648570613016,
+              "spoof_rate": 0.19746835443037974
+            },
+            {
+              "bin": 2,
+              "lower": 0.2,
+              "upper": 0.30000000000000004,
+              "count": 409,
+              "mean_score": 0.24891456706599677,
+              "spoof_rate": 0.28117359413202936
+            },
+            {
+              "bin": 3,
+              "lower": 0.30000000000000004,
+              "upper": 0.4,
+              "count": 463,
+              "mean_score": 0.3513240889519389,
+              "spoof_rate": 0.49892008639308855
+            },
+            {
+              "bin": 4,
+              "lower": 0.4,
+              "upper": 0.5,
+              "count": 581,
+              "mean_score": 0.4505238365798727,
+              "spoof_rate": 0.5197934595524957
+            },
+            {
+              "bin": 5,
+              "lower": 0.5,
+              "upper": 0.6000000000000001,
+              "count": 685,
+              "mean_score": 0.5510742752221379,
+              "spoof_rate": 0.6467153284671533
+            },
+            {
+              "bin": 6,
+              "lower": 0.6000000000000001,
+              "upper": 0.7000000000000001,
+              "count": 818,
+              "mean_score": 0.6527539375796003,
+              "spoof_rate": 0.6980440097799511
+            },
+            {
+              "bin": 7,
+              "lower": 0.7000000000000001,
+              "upper": 0.8,
+              "count": 1163,
+              "mean_score": 0.7529190099659606,
+              "spoof_rate": 0.7919174548581256
+            },
+            {
+              "bin": 8,
+              "lower": 0.8,
+              "upper": 0.9,
+              "count": 1807,
+              "mean_score": 0.8560769588959171,
+              "spoof_rate": 0.8788046485888212
+            },
+            {
+              "bin": 9,
+              "lower": 0.9,
+              "upper": 1.0,
+              "count": 18267,
+              "mean_score": 0.9875686122140724,
+              "spoof_rate": 0.9866973230415503
+            }
+          ]
+        },
+        "threshold_metrics": {
+          "fixed_0.5": {
+            "threshold": 0.5,
+            "accuracy": 0.9218322331347609,
+            "balanced_accuracy": 0.7490980846259179,
+            "bonafide_recall": 0.5317896389324961,
+            "spoof_recall": 0.9664065303193398,
+            "false_positive_rate": 0.4682103610675039,
+            "false_negative_rate": 0.03359346968066021,
+            "precision": 0.9475373790677221,
+            "confusion": {
+              "tp": 21547,
+              "tn": 1355,
+              "fp": 1193,
+              "fn": 749
+            },
+            "n": 24844
+          },
+          "dev_eer": {
+            "threshold": 0.844173789024353,
+            "accuracy": 0.8550555466108517,
+            "balanced_accuracy": 0.8549370915874837,
+            "bonafide_recall": 0.8547880690737834,
+            "spoof_recall": 0.8550861141011841,
+            "false_positive_rate": 0.14521193092621665,
+            "false_negative_rate": 0.14491388589881593,
+            "precision": 0.980962181631078,
+            "confusion": {
+              "tp": 19065,
+              "tn": 2178,
+              "fp": 370,
+              "fn": 3231
+            },
+            "n": 24844
+          }
+        },
+        "per_attack": {
+          "A01": {
+            "n_spoof": 3716,
+            "n_bonafide": 2548,
+            "eer": 0.05014465006007371,
+            "auc": 0.989306657704897,
+            "eer_threshold_descriptive": 0.9540577530860901
+          },
+          "A02": {
+            "n_spoof": 3716,
+            "n_bonafide": 2548,
+            "eer": 0.06719405075932833,
+            "auc": 0.9804730340012133,
+            "eer_threshold_descriptive": 0.9353974461555481
+          },
+          "A03": {
+            "n_spoof": 3716,
+            "n_bonafide": 2548,
+            "eer": 0.06546724842126964,
+            "auc": 0.9816551807027357,
+            "eer_threshold_descriptive": 0.936924159526825
+          },
+          "A04": {
+            "n_spoof": 3716,
+            "n_bonafide": 2548,
+            "eer": 0.136972707440184,
+            "auc": 0.9337601263491238,
+            "eer_threshold_descriptive": 0.8524474501609802
+          },
+          "A05": {
+            "n_spoof": 3716,
+            "n_bonafide": 2548,
+            "eer": 0.1420802402272493,
+            "auc": 0.9302818078046818,
+            "eer_threshold_descriptive": 0.848689615726471
+          },
+          "A06": {
+            "n_spoof": 3716,
+            "n_bonafide": 2548,
+            "eer": 0.28608351513164676,
+            "auc": 0.7809263961856996,
+            "eer_threshold_descriptive": 0.6891762614250183
+          }
+        },
+        "per_speaker": {
+          "LA_0069": {
+            "n_spoof": 2484,
+            "n_bonafide": 154,
+            "eer": 0.10974391952652822,
+            "auc": 0.9617264780308259,
+            "eer_threshold_descriptive": 0.7246411442756653,
+            "spoof_recall_at_0.5": 0.9569243156199678,
+            "bonafide_recall_at_0.5": 0.7532467532467533
+          },
+          "LA_0070": {
+            "n_spoof": 1848,
+            "n_bonafide": 140,
+            "eer": 0.13576839826839826,
+            "auc": 0.9365066481137909,
+            "eer_threshold_descriptive": 0.8624805808067322,
+            "spoof_recall_at_0.5": 0.9734848484848485,
+            "bonafide_recall_at_0.5": 0.5642857142857143
+          },
+          "LA_0071": {
+            "n_spoof": 1848,
+            "n_bonafide": 140,
+            "eer": 0.171482683982684,
+            "auc": 0.908167130488559,
+            "eer_threshold_descriptive": 0.8710828423500061,
+            "spoof_recall_at_0.5": 0.9659090909090909,
+            "bonafide_recall_at_0.5": 0.4357142857142857
+          },
+          "LA_0072": {
+            "n_spoof": 2484,
+            "n_bonafide": 154,
+            "eer": 0.13641853315766359,
+            "auc": 0.9313933851977331,
+            "eer_threshold_descriptive": 0.8442324995994568,
+            "spoof_recall_at_0.5": 0.9694041867954911,
+            "bonafide_recall_at_0.5": 0.5974025974025974
+          },
+          "LA_0073": {
+            "n_spoof": 1848,
+            "n_bonafide": 140,
+            "eer": 0.11585497835497835,
+            "auc": 0.9611665120593692,
+            "eer_threshold_descriptive": 0.8299306631088257,
+            "spoof_recall_at_0.5": 0.9713203463203464,
+            "bonafide_recall_at_0.5": 0.6785714285714286
+          },
+          "LA_0074": {
+            "n_spoof": 2484,
+            "n_bonafide": 154,
+            "eer": 0.12854215028128071,
+            "auc": 0.9442353138005312,
+            "eer_threshold_descriptive": 0.8296148180961609,
+            "spoof_recall_at_0.5": 0.9694041867954911,
+            "bonafide_recall_at_0.5": 0.5584415584415584
+          },
+          "LA_0075": {
+            "n_spoof": 2484,
+            "n_bonafide": 154,
+            "eer": 0.1558206286467156,
+            "auc": 0.9173515695254826,
+            "eer_threshold_descriptive": 0.9016395211219788,
+            "spoof_recall_at_0.5": 0.960950080515298,
+            "bonafide_recall_at_0.5": 0.4090909090909091
+          },
+          "LA_0076": {
+            "n_spoof": 1848,
+            "n_bonafide": 140,
+            "eer": 0.12132034632034633,
+            "auc": 0.9513644094001237,
+            "eer_threshold_descriptive": 0.7469472885131836,
+            "spoof_recall_at_0.5": 0.9680735930735931,
+            "bonafide_recall_at_0.5": 0.5857142857142857
+          },
+          "LA_0077": {
+            "n_spoof": 2484,
+            "n_bonafide": 154,
+            "eer": 0.09741305393479308,
+            "auc": 0.9664580588493632,
+            "eer_threshold_descriptive": 0.7568318247795105,
+            "spoof_recall_at_0.5": 0.965780998389694,
+            "bonafide_recall_at_0.5": 0.7597402597402597
+          },
+          "LA_0078": {
+            "n_spoof": 2484,
+            "n_bonafide": 154,
+            "eer": 0.12995116799464623,
+            "auc": 0.9519862182905661,
+            "eer_threshold_descriptive": 0.8004250526428223,
+            "spoof_recall_at_0.5": 0.966183574879227,
+            "bonafide_recall_at_0.5": 0.6688311688311688
+          },
+          "LA_0099": {
+            "n_spoof": 0,
+            "n_bonafide": 77,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.5064935064935064
+          },
+          "LA_0100": {
+            "n_spoof": 0,
+            "n_bonafide": 77,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.5844155844155844
+          },
+          "LA_0101": {
+            "n_spoof": 0,
+            "n_bonafide": 77,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.2597402597402597
+          },
+          "LA_0102": {
+            "n_spoof": 0,
+            "n_bonafide": 126,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.3412698412698413
+          },
+          "LA_0103": {
+            "n_spoof": 0,
+            "n_bonafide": 126,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.5238095238095238
+          },
+          "LA_0104": {
+            "n_spoof": 0,
+            "n_bonafide": 126,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.4523809523809524
+          },
+          "LA_0105": {
+            "n_spoof": 0,
+            "n_bonafide": 77,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.37662337662337664
+          },
+          "LA_0106": {
+            "n_spoof": 0,
+            "n_bonafide": 126,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.4365079365079365
+          },
+          "LA_0107": {
+            "n_spoof": 0,
+            "n_bonafide": 126,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.4444444444444444
+          },
+          "LA_0108": {
+            "n_spoof": 0,
+            "n_bonafide": 126,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.40476190476190477
+          }
+        }
+      }
+    },
+    "eval": {
+      "provenance": {
+        "dataset": "ASVspoof 2019 LA",
+        "split": "eval",
+        "source": "image",
+        "data_root": "data/LA",
+        "protocol_path": "data/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.eval.trl.txt",
+        "protocol_sha256": "84fce576efff092269a0a6ad247d2e9f2f7b4d4e25a4545efb2518da92708036",
+        "image_root": "data/derived/e1_1_frontend/mfcc40",
+        "metadata_path": "data/derived/e1_1_frontend/mfcc40/eval/metadata_eval.csv",
+        "metadata_sha256": "1c2c80fb65fda60a3b874f0b356dca48cdcaf373e00452f26e5b37b1f6e89516"
+      },
+      "attack_subset": "A07-A19",
+      "metrics": {
+        "sample_counts": {
+          "total": 71237,
+          "bonafide": 7355,
+          "spoof": 63882
+        },
+        "attack_ids": [
+          "A07",
+          "A08",
+          "A09",
+          "A10",
+          "A11",
+          "A12",
+          "A13",
+          "A14",
+          "A15",
+          "A16",
+          "A17",
+          "A18",
+          "A19"
+        ],
+        "speaker_count": 67,
+        "score_summary": {
+          "min": 0.0053083994425833225,
+          "max": 1.0,
+          "mean": 0.8284455332945647
+        },
+        "eer": 0.1856214181947592,
+        "eer_threshold_descriptive": 0.7508181929588318,
+        "auc": 0.8963357917026274,
+        "calibration": {
+          "brier": 0.08671262325737476,
+          "ece": 0.06830755849762188,
+          "n_bins": 10,
+          "bins": [
+            {
+              "bin": 0,
+              "lower": 0.0,
+              "upper": 0.1,
+              "count": 1604,
+              "mean_score": 0.06052521023082958,
+              "spoof_rate": 0.364713216957606
+            },
+            {
+              "bin": 1,
+              "lower": 0.1,
+              "upper": 0.2,
+              "count": 2308,
+              "mean_score": 0.1493308506389528,
+              "spoof_rate": 0.5134315424610052
+            },
+            {
+              "bin": 2,
+              "lower": 0.2,
+              "upper": 0.30000000000000004,
+              "count": 2143,
+              "mean_score": 0.2500815950594825,
+              "spoof_rate": 0.6070928604759682
+            },
+            {
+              "bin": 3,
+              "lower": 0.30000000000000004,
+              "upper": 0.4,
+              "count": 2214,
+              "mean_score": 0.3505274047023451,
+              "spoof_rate": 0.6567299006323396
+            },
+            {
+              "bin": 4,
+              "lower": 0.4,
+              "upper": 0.5,
+              "count": 2409,
+              "mean_score": 0.449599369698513,
+              "spoof_rate": 0.701120797011208
+            },
+            {
+              "bin": 5,
+              "lower": 0.5,
+              "upper": 0.6000000000000001,
+              "count": 2604,
+              "mean_score": 0.5506086294094356,
+              "spoof_rate": 0.75
+            },
+            {
+              "bin": 6,
+              "lower": 0.6000000000000001,
+              "upper": 0.7000000000000001,
+              "count": 2939,
+              "mean_score": 0.6504689069904004,
+              "spoof_rate": 0.8019734603606669
+            },
+            {
+              "bin": 7,
+              "lower": 0.7000000000000001,
+              "upper": 0.8,
+              "count": 3439,
+              "mean_score": 0.7523132391570785,
+              "spoof_rate": 0.8298924105844723
+            },
+            {
+              "bin": 8,
+              "lower": 0.8,
+              "upper": 0.9,
+              "count": 4802,
+              "mean_score": 0.8542365165165889,
+              "spoof_rate": 0.8908788004997917
+            },
+            {
+              "bin": 9,
+              "lower": 0.9,
+              "upper": 1.0,
+              "count": 46775,
+              "mean_score": 0.9865183758544515,
+              "spoof_rate": 0.9882629609834314
+            }
+          ]
+        },
+        "threshold_metrics": {
+          "fixed_0.5": {
+            "threshold": 0.5,
+            "accuracy": 0.8721872060867246,
+            "balanced_accuracy": 0.7548304805952664,
+            "bonafide_recall": 0.6069340584636301,
+            "spoof_recall": 0.9027269027269027,
+            "false_positive_rate": 0.3930659415363698,
+            "false_negative_rate": 0.09727309727309727,
+            "precision": 0.9522614310011724,
+            "confusion": {
+              "tp": 57668,
+              "tn": 4464,
+              "fp": 2891,
+              "fn": 6214
+            },
+            "n": 71237
+          },
+          "dev_eer": {
+            "threshold": 0.844173789024353,
+            "accuracy": 0.7785560874264779,
+            "balanced_accuracy": 0.8257601599362829,
+            "bonafide_recall": 0.8852481305234534,
+            "spoof_recall": 0.7662721893491125,
+            "false_positive_rate": 0.11475186947654657,
+            "false_negative_rate": 0.23372781065088757,
+            "precision": 0.983050507079024,
+            "confusion": {
+              "tp": 48951,
+              "tn": 6511,
+              "fp": 844,
+              "fn": 14931
+            },
+            "n": 71237
+          }
+        },
+        "per_attack": {
+          "A07": {
+            "n_spoof": 4914,
+            "n_bonafide": 7355,
+            "eer": 0.06977452011442495,
+            "auc": 0.9801483822218017,
+            "eer_threshold_descriptive": 0.9083070755004883
+          },
+          "A08": {
+            "n_spoof": 4914,
+            "n_bonafide": 7355,
+            "eer": 0.056396878796606875,
+            "auc": 0.9858160773184567,
+            "eer_threshold_descriptive": 0.9281110167503357
+          },
+          "A09": {
+            "n_spoof": 4914,
+            "n_bonafide": 7355,
+            "eer": 0.03235773592673661,
+            "auc": 0.9950022646487636,
+            "eer_threshold_descriptive": 0.9582366943359375
+          },
+          "A10": {
+            "n_spoof": 4914,
+            "n_bonafide": 7355,
+            "eer": 0.09765038194677896,
+            "auc": 0.9661663549834862,
+            "eer_threshold_descriptive": 0.8679957985877991
+          },
+          "A11": {
+            "n_spoof": 4914,
+            "n_bonafide": 7355,
+            "eer": 0.05965642359252149,
+            "auc": 0.9850989984912487,
+            "eer_threshold_descriptive": 0.9239046573638916
+          },
+          "A12": {
+            "n_spoof": 4914,
+            "n_bonafide": 7355,
+            "eer": 0.10481462667050702,
+            "auc": 0.9600006861733579,
+            "eer_threshold_descriptive": 0.8586724400520325
+          },
+          "A13": {
+            "n_spoof": 4914,
+            "n_bonafide": 7355,
+            "eer": 0.11581559035671884,
+            "auc": 0.9516514643299143,
+            "eer_threshold_descriptive": 0.8426612615585327
+          },
+          "A14": {
+            "n_spoof": 4914,
+            "n_bonafide": 7355,
+            "eer": 0.11289550769496384,
+            "auc": 0.9572430854891766,
+            "eer_threshold_descriptive": 0.8470950722694397
+          },
+          "A15": {
+            "n_spoof": 4914,
+            "n_bonafide": 7355,
+            "eer": 0.07571643553968502,
+            "auc": 0.9758311343967361,
+            "eer_threshold_descriptive": 0.8980646133422852
+          },
+          "A16": {
+            "n_spoof": 4914,
+            "n_bonafide": 7355,
+            "eer": 0.1278011713089891,
+            "auc": 0.9442227523464777,
+            "eer_threshold_descriptive": 0.8249742388725281
+          },
+          "A17": {
+            "n_spoof": 4914,
+            "n_bonafide": 7355,
+            "eer": 0.4000407000407,
+            "auc": 0.6373355086135508,
+            "eer_threshold_descriptive": 0.4917978048324585
+          },
+          "A18": {
+            "n_spoof": 4914,
+            "n_bonafide": 7355,
+            "eer": 0.40207791553814665,
+            "auc": 0.6302116042428755,
+            "eer_threshold_descriptive": 0.4887615144252777
+          },
+          "A19": {
+            "n_spoof": 4914,
+            "n_bonafide": 7355,
+            "eer": 0.3624541847859319,
+            "auc": 0.6836369788783113,
+            "eer_threshold_descriptive": 0.532819390296936
+          }
+        },
+        "per_speaker": {
+          "LA_0001": {
+            "n_spoof": 936,
+            "n_bonafide": 68,
+            "eer": 0.11598164906988437,
+            "auc": 0.9439102564102564,
+            "eer_threshold_descriptive": 0.6023975014686584,
+            "spoof_recall_at_0.5": 0.9209401709401709,
+            "bonafide_recall_at_0.5": 0.7647058823529411
+          },
+          "LA_0002": {
+            "n_spoof": 936,
+            "n_bonafide": 68,
+            "eer": 0.2823340874811463,
+            "auc": 0.7743526897938663,
+            "eer_threshold_descriptive": 0.9279225468635559,
+            "spoof_recall_at_0.5": 0.9337606837606838,
+            "bonafide_recall_at_0.5": 0.22058823529411764
+          },
+          "LA_0003": {
+            "n_spoof": 936,
+            "n_bonafide": 68,
+            "eer": 0.18907114127702362,
+            "auc": 0.8971688034188035,
+            "eer_threshold_descriptive": 0.8018356561660767,
+            "spoof_recall_at_0.5": 0.9433760683760684,
+            "bonafide_recall_at_0.5": 0.4852941176470588
+          },
+          "LA_0004": {
+            "n_spoof": 1638,
+            "n_bonafide": 146,
+            "eer": 0.14273587903724888,
+            "auc": 0.9295499021526419,
+            "eer_threshold_descriptive": 0.5797225832939148,
+            "spoof_recall_at_0.5": 0.8748473748473748,
+            "bonafide_recall_at_0.5": 0.8082191780821918
+          },
+          "LA_0005": {
+            "n_spoof": 936,
+            "n_bonafide": 68,
+            "eer": 0.13562091503267976,
+            "auc": 0.9402023629964806,
+            "eer_threshold_descriptive": 0.6835960149765015,
+            "spoof_recall_at_0.5": 0.9220085470085471,
+            "bonafide_recall_at_0.5": 0.7058823529411765
+          },
+          "LA_0006": {
+            "n_spoof": 1638,
+            "n_bonafide": 146,
+            "eer": 0.1849565959155,
+            "auc": 0.8952824192550219,
+            "eer_threshold_descriptive": 0.7406417727470398,
+            "spoof_recall_at_0.5": 0.8974358974358975,
+            "bonafide_recall_at_0.5": 0.6027397260273972
+          },
+          "LA_0007": {
+            "n_spoof": 936,
+            "n_bonafide": 68,
+            "eer": 0.14404223227752638,
+            "auc": 0.9253236551030669,
+            "eer_threshold_descriptive": 0.6854556202888489,
+            "spoof_recall_at_0.5": 0.936965811965812,
+            "bonafide_recall_at_0.5": 0.6323529411764706
+          },
+          "LA_0008": {
+            "n_spoof": 1638,
+            "n_bonafide": 146,
+            "eer": 0.15073929115025003,
+            "auc": 0.9234992556910365,
+            "eer_threshold_descriptive": 0.7088106870651245,
+            "spoof_recall_at_0.5": 0.909035409035409,
+            "bonafide_recall_at_0.5": 0.6986301369863014
+          },
+          "LA_0009": {
+            "n_spoof": 1638,
+            "n_bonafide": 146,
+            "eer": 0.19082325589174903,
+            "auc": 0.8921922826032415,
+            "eer_threshold_descriptive": 0.7553712129592896,
+            "spoof_recall_at_0.5": 0.8998778998778999,
+            "bonafide_recall_at_0.5": 0.5958904109589042
+          },
+          "LA_0010": {
+            "n_spoof": 1638,
+            "n_bonafide": 146,
+            "eer": 0.15073929115025003,
+            "auc": 0.9226504089517789,
+            "eer_threshold_descriptive": 0.678239643573761,
+            "spoof_recall_at_0.5": 0.8968253968253969,
+            "bonafide_recall_at_0.5": 0.7465753424657534
+          },
+          "LA_0011": {
+            "n_spoof": 936,
+            "n_bonafide": 68,
+            "eer": 0.19120789341377575,
+            "auc": 0.8950163398692811,
+            "eer_threshold_descriptive": 0.7815890312194824,
+            "spoof_recall_at_0.5": 0.9358974358974359,
+            "bonafide_recall_at_0.5": 0.5588235294117647
+          },
+          "LA_0012": {
+            "n_spoof": 1638,
+            "n_bonafide": 146,
+            "eer": 0.12330439727700002,
+            "auc": 0.9458619766838945,
+            "eer_threshold_descriptive": 0.5432559251785278,
+            "spoof_recall_at_0.5": 0.891941391941392,
+            "bonafide_recall_at_0.5": 0.8561643835616438
+          },
+          "LA_0013": {
+            "n_spoof": 936,
+            "n_bonafide": 68,
+            "eer": 0.22033685268979386,
+            "auc": 0.8716220462543992,
+            "eer_threshold_descriptive": 0.7541601657867432,
+            "spoof_recall_at_0.5": 0.9230769230769231,
+            "bonafide_recall_at_0.5": 0.5882352941176471
+          },
+          "LA_0014": {
+            "n_spoof": 1638,
+            "n_bonafide": 146,
+            "eer": 0.20560907889675012,
+            "auc": 0.8616714335892418,
+            "eer_threshold_descriptive": 0.7485535740852356,
+            "spoof_recall_at_0.5": 0.8663003663003663,
+            "bonafide_recall_at_0.5": 0.5753424657534246
+          },
+          "LA_0015": {
+            "n_spoof": 936,
+            "n_bonafide": 68,
+            "eer": 0.22033685268979386,
+            "auc": 0.8418017848164907,
+            "eer_threshold_descriptive": 0.8017650842666626,
+            "spoof_recall_at_0.5": 0.9294871794871795,
+            "bonafide_recall_at_0.5": 0.35294117647058826
+          },
+          "LA_0016": {
+            "n_spoof": 1638,
+            "n_bonafide": 146,
+            "eer": 0.15073929115025003,
+            "auc": 0.9215548530617024,
+            "eer_threshold_descriptive": 0.6042184233665466,
+            "spoof_recall_at_0.5": 0.8852258852258852,
+            "bonafide_recall_at_0.5": 0.7945205479452054
+          },
+          "LA_0017": {
+            "n_spoof": 1638,
+            "n_bonafide": 146,
+            "eer": 0.13595346814524895,
+            "auc": 0.9427843845652065,
+            "eer_threshold_descriptive": 0.5526219606399536,
+            "spoof_recall_at_0.5": 0.8785103785103785,
+            "bonafide_recall_at_0.5": 0.8493150684931506
+          },
+          "LA_0018": {
+            "n_spoof": 936,
+            "n_bonafide": 68,
+            "eer": 0.1027526395173454,
+            "auc": 0.9584904474610357,
+            "eer_threshold_descriptive": 0.5837317705154419,
+            "spoof_recall_at_0.5": 0.9230769230769231,
+            "bonafide_recall_at_0.5": 0.8676470588235294
+          },
+          "LA_0019": {
+            "n_spoof": 1638,
+            "n_bonafide": 146,
+            "eer": 0.21795289945974877,
+            "auc": 0.8684538444812417,
+            "eer_threshold_descriptive": 0.8433845639228821,
+            "spoof_recall_at_0.5": 0.9017094017094017,
+            "bonafide_recall_at_0.5": 0.5205479452054794
+          },
+          "LA_0020": {
+            "n_spoof": 1638,
+            "n_bonafide": 146,
+            "eer": 0.19021275528124842,
+            "auc": 0.9075258835532808,
+            "eer_threshold_descriptive": 0.6416102051734924,
+            "spoof_recall_at_0.5": 0.8663003663003663,
+            "bonafide_recall_at_0.5": 0.7328767123287672
+          },
+          "LA_0021": {
+            "n_spoof": 936,
+            "n_bonafide": 68,
+            "eer": 0.14831573655103067,
+            "auc": 0.9165095525389643,
+            "eer_threshold_descriptive": 0.635906994342804,
+            "spoof_recall_at_0.5": 0.9017094017094017,
+            "bonafide_recall_at_0.5": 0.7205882352941176
+          },
+          "LA_0022": {
+            "n_spoof": 1638,
+            "n_bonafide": 146,
+            "eer": 0.1646093632395002,
+            "auc": 0.9121339087092512,
+            "eer_threshold_descriptive": 0.7997013926506042,
+            "spoof_recall_at_0.5": 0.924908424908425,
+            "bonafide_recall_at_0.5": 0.5136986301369864
+          },
+          "LA_0023": {
+            "n_spoof": 936,
+            "n_bonafide": 68,
+            "eer": 0.11758421317244847,
+            "auc": 0.9517659627953745,
+            "eer_threshold_descriptive": 0.6401551365852356,
+            "spoof_recall_at_0.5": 0.9252136752136753,
+            "bonafide_recall_at_0.5": 0.8088235294117647
+          },
+          "LA_0024": {
+            "n_spoof": 1638,
+            "n_bonafide": 146,
+            "eer": 0.17725843410774916,
+            "auc": 0.904899894625922,
+            "eer_threshold_descriptive": 0.6697173714637756,
+            "spoof_recall_at_0.5": 0.8956043956043956,
+            "bonafide_recall_at_0.5": 0.6986301369863014
+          },
+          "LA_0025": {
+            "n_spoof": 936,
+            "n_bonafide": 68,
+            "eer": 0.10382101558572146,
+            "auc": 0.948403720462544,
+            "eer_threshold_descriptive": 0.6113355159759521,
+            "spoof_recall_at_0.5": 0.9391025641025641,
+            "bonafide_recall_at_0.5": 0.6911764705882353
+          },
+          "LA_0026": {
+            "n_spoof": 1638,
+            "n_bonafide": 146,
+            "eer": 0.1439568802582501,
+            "auc": 0.9336854165621289,
+            "eer_threshold_descriptive": 0.6713735461235046,
+            "spoof_recall_at_0.5": 0.9029304029304029,
+            "bonafide_recall_at_0.5": 0.7465753424657534
+          },
+          "LA_0027": {
+            "n_spoof": 1638,
+            "n_bonafide": 146,
+            "eer": 0.26634552661949923,
+            "auc": 0.7947045344305619,
+            "eer_threshold_descriptive": 0.8533906936645508,
+            "spoof_recall_at_0.5": 0.891941391941392,
+            "bonafide_recall_at_0.5": 0.2328767123287671
+          },
+          "LA_0028": {
+            "n_spoof": 936,
+            "n_bonafide": 68,
+            "eer": 0.1181184012066365,
+            "auc": 0.9534156611362494,
+            "eer_threshold_descriptive": 0.576062798500061,
+            "spoof_recall_at_0.5": 0.9188034188034188,
+            "bonafide_recall_at_0.5": 0.8382352941176471
+          },
+          "LA_0029": {
+            "n_spoof": 1638,
+            "n_bonafide": 146,
+            "eer": 0.17664793349724855,
+            "auc": 0.9088346965059294,
+            "eer_threshold_descriptive": 0.6551519632339478,
+            "spoof_recall_at_0.5": 0.8717948717948718,
+            "bonafide_recall_at_0.5": 0.7054794520547946
+          },
+          "LA_0030": {
+            "n_spoof": 936,
+            "n_bonafide": 68,
+            "eer": 0.20283433886375063,
+            "auc": 0.8892816742081447,
+            "eer_threshold_descriptive": 0.8336918950080872,
+            "spoof_recall_at_0.5": 0.9401709401709402,
+            "bonafide_recall_at_0.5": 0.4852941176470588
+          },
+          "LA_0031": {
+            "n_spoof": 1638,
+            "n_bonafide": 146,
+            "eer": 0.2200896515965009,
+            "auc": 0.855102279759814,
+            "eer_threshold_descriptive": 0.85673588514328,
+            "spoof_recall_at_0.5": 0.8876678876678876,
+            "bonafide_recall_at_0.5": 0.3972602739726027
+          },
+          "LA_0032": {
+            "n_spoof": 936,
+            "n_bonafide": 68,
+            "eer": 0.19227626948215182,
+            "auc": 0.9020550527903469,
+            "eer_threshold_descriptive": 0.795527458190918,
+            "spoof_recall_at_0.5": 0.9401709401709402,
+            "bonafide_recall_at_0.5": 0.4117647058823529
+          },
+          "LA_0033": {
+            "n_spoof": 1638,
+            "n_bonafide": 146,
+            "eer": 0.19204425711275025,
+            "auc": 0.8893572181243414,
+            "eer_threshold_descriptive": 0.7427677512168884,
+            "spoof_recall_at_0.5": 0.8846153846153846,
+            "bonafide_recall_at_0.5": 0.678082191780822
+          },
+          "LA_0034": {
+            "n_spoof": 1638,
+            "n_bonafide": 146,
+            "eer": 0.17664793349724855,
+            "auc": 0.894295582651747,
+            "eer_threshold_descriptive": 0.7170984148979187,
+            "spoof_recall_at_0.5": 0.8821733821733821,
+            "bonafide_recall_at_0.5": 0.5958904109589042
+          },
+          "LA_0035": {
+            "n_spoof": 1638,
+            "n_bonafide": 146,
+            "eer": 0.1643041129342499,
+            "auc": 0.9151111445631993,
+            "eer_threshold_descriptive": 0.6507058143615723,
+            "spoof_recall_at_0.5": 0.8785103785103785,
+            "bonafide_recall_at_0.5": 0.7534246575342466
+          },
+          "LA_0036": {
+            "n_spoof": 936,
+            "n_bonafide": 68,
+            "eer": 0.20603946706887882,
+            "auc": 0.8571518350930115,
+            "eer_threshold_descriptive": 0.7756001353263855,
+            "spoof_recall_at_0.5": 0.9113247863247863,
+            "bonafide_recall_at_0.5": 0.47058823529411764
+          },
+          "LA_0037": {
+            "n_spoof": 1638,
+            "n_bonafide": 146,
+            "eer": 0.1643041129342499,
+            "auc": 0.9280612842256678,
+            "eer_threshold_descriptive": 0.6378234624862671,
+            "spoof_recall_at_0.5": 0.8766788766788767,
+            "bonafide_recall_at_0.5": 0.773972602739726
+          },
+          "LA_0038": {
+            "n_spoof": 936,
+            "n_bonafide": 68,
+            "eer": 0.3972473604826546,
+            "auc": 0.6478601055806938,
+            "eer_threshold_descriptive": 0.9348846673965454,
+            "spoof_recall_at_0.5": 0.9305555555555556,
+            "bonafide_recall_at_0.5": 0.11764705882352941
+          },
+          "LA_0039": {
+            "n_spoof": 1638,
+            "n_bonafide": 146,
+            "eer": 0.17291802565775166,
+            "auc": 0.9034447287871945,
+            "eer_threshold_descriptive": 0.6672821640968323,
+            "spoof_recall_at_0.5": 0.8785103785103785,
+            "bonafide_recall_at_0.5": 0.7054794520547946
+          },
+          "LA_0040": {
+            "n_spoof": 936,
+            "n_bonafide": 68,
+            "eer": 0.17744469582704878,
+            "auc": 0.8887160633484162,
+            "eer_threshold_descriptive": 0.7434616088867188,
+            "spoof_recall_at_0.5": 0.9326923076923077,
+            "bonafide_recall_at_0.5": 0.4411764705882353
+          },
+          "LA_0041": {
+            "n_spoof": 1638,
+            "n_bonafide": 146,
+            "eer": 0.17847943532875038,
+            "auc": 0.8939025206148494,
+            "eer_threshold_descriptive": 0.7496635913848877,
+            "spoof_recall_at_0.5": 0.894993894993895,
+            "bonafide_recall_at_0.5": 0.5
+          },
+          "LA_0042": {
+            "n_spoof": 1638,
+            "n_bonafide": 146,
+            "eer": 0.16583036446050142,
+            "auc": 0.9100389716828073,
+            "eer_threshold_descriptive": 0.7766324877738953,
+            "spoof_recall_at_0.5": 0.9194139194139194,
+            "bonafide_recall_at_0.5": 0.6164383561643836
+          },
+          "LA_0043": {
+            "n_spoof": 1638,
+            "n_bonafide": 146,
+            "eer": 0.19112850619699934,
+            "auc": 0.8891899576831084,
+            "eer_threshold_descriptive": 0.7633339166641235,
+            "spoof_recall_at_0.5": 0.8956043956043956,
+            "bonafide_recall_at_0.5": 0.541095890410959
+          },
+          "LA_0044": {
+            "n_spoof": 936,
+            "n_bonafide": 68,
+            "eer": 0.2039027149321267,
+            "auc": 0.8756755907491202,
+            "eer_threshold_descriptive": 0.8087364435195923,
+            "spoof_recall_at_0.5": 0.9294871794871795,
+            "bonafide_recall_at_0.5": 0.4117647058823529
+          },
+          "LA_0045": {
+            "n_spoof": 1638,
+            "n_bonafide": 146,
+            "eer": 0.14487263117400104,
+            "auc": 0.94265057621222,
+            "eer_threshold_descriptive": 0.6619498133659363,
+            "spoof_recall_at_0.5": 0.9035409035409036,
+            "bonafide_recall_at_0.5": 0.7808219178082192
+          },
+          "LA_0046": {
+            "n_spoof": 936,
+            "n_bonafide": 68,
+            "eer": 0.1027526395173454,
+            "auc": 0.9631724484665661,
+            "eer_threshold_descriptive": 0.5862858295440674,
+            "spoof_recall_at_0.5": 0.9273504273504274,
+            "bonafide_recall_at_0.5": 0.8382352941176471
+          },
+          "LA_0047": {
+            "n_spoof": 1638,
+            "n_bonafide": 146,
+            "eer": 0.17078127352099953,
+            "auc": 0.8994053891314165,
+            "eer_threshold_descriptive": 0.7634416818618774,
+            "spoof_recall_at_0.5": 0.9133089133089133,
+            "bonafide_recall_at_0.5": 0.4931506849315068
+          },
+          "LA_0048": {
+            "n_spoof": 936,
+            "n_bonafide": 68,
+            "eer": 0.22140522875816993,
+            "auc": 0.8415975364504776,
+            "eer_threshold_descriptive": 0.7940111756324768,
+            "spoof_recall_at_0.5": 0.9230769230769231,
+            "bonafide_recall_at_0.5": 0.38235294117647056
+          },
+          "LA_0049": {
+            "n_spoof": 0,
+            "n_bonafide": 95,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.7157894736842105
+          },
+          "LA_0050": {
+            "n_spoof": 0,
+            "n_bonafide": 113,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.23893805309734514
+          },
+          "LA_0051": {
+            "n_spoof": 0,
+            "n_bonafide": 113,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.7256637168141593
+          },
+          "LA_0052": {
+            "n_spoof": 0,
+            "n_bonafide": 95,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.8105263157894737
+          },
+          "LA_0053": {
+            "n_spoof": 0,
+            "n_bonafide": 113,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.6991150442477876
+          },
+          "LA_0054": {
+            "n_spoof": 0,
+            "n_bonafide": 95,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.4
+          },
+          "LA_0055": {
+            "n_spoof": 0,
+            "n_bonafide": 113,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.6902654867256637
+          },
+          "LA_0056": {
+            "n_spoof": 0,
+            "n_bonafide": 95,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.47368421052631576
+          },
+          "LA_0057": {
+            "n_spoof": 0,
+            "n_bonafide": 95,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.49473684210526314
+          },
+          "LA_0058": {
+            "n_spoof": 0,
+            "n_bonafide": 113,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.8230088495575221
+          },
+          "LA_0059": {
+            "n_spoof": 0,
+            "n_bonafide": 95,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.3684210526315789
+          },
+          "LA_0060": {
+            "n_spoof": 0,
+            "n_bonafide": 113,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.6194690265486725
+          },
+          "LA_0061": {
+            "n_spoof": 0,
+            "n_bonafide": 113,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.7345132743362832
+          },
+          "LA_0063": {
+            "n_spoof": 0,
+            "n_bonafide": 113,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.6194690265486725
+          },
+          "LA_0064": {
+            "n_spoof": 0,
+            "n_bonafide": 95,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.5684210526315789
+          },
+          "LA_0065": {
+            "n_spoof": 0,
+            "n_bonafide": 95,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.3368421052631579
+          },
+          "LA_0066": {
+            "n_spoof": 0,
+            "n_bonafide": 113,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.37168141592920356
+          },
+          "LA_0067": {
+            "n_spoof": 0,
+            "n_bonafide": 113,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.584070796460177
+          },
+          "LA_0068": {
+            "n_spoof": 0,
+            "n_bonafide": 95,
+            "eer": null,
+            "auc": null,
+            "eer_threshold_descriptive": null,
+            "note": "EER/AUC require both spoof and bonafide samples",
+            "spoof_recall_at_0.5": null,
+            "bonafide_recall_at_0.5": 0.2
+          }
+        }
+      }
+    }
+  }
+}

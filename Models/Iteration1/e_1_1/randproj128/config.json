@@ -1,0 +1,122 @@
+{
+  "experiment": "E1.1",
+  "generated_at_utc": "2026-11-20T15:41:14+00:00",
+  "command": "'/home/toastu/Research/Spoof Detection/.venv/bin/python' scripts/train_e1_1_probes.py --frontends mel64 mel128 mel256 linear_stft mfcc40 randproj128 --image-root data/derived/e1_1_frontend --checkpoint-root Models/Iteration1/e_1_1",
+  "frontend": "randproj128",
+  "frontend_payload": {
+    "version": "randproj128-magma-4s-v1",
+    "frontend": "randproj128",
+    "description": "128-row fixed Gaussian projection of the linear dB STFT (control)",
+    "params": {
+      "rows": 128,
+      "cols": 1025,
+      "seed": 42,
+      "source": "linear_stft_db"
+    },
+    "sample_rate": 16000,
+    "target_seconds": 4,
+    "target_length": 64000,
+    "colormap": "magma",
+    "render": "plt.imsave(cmap='magma', origin='lower')",
+    "resize": [
+      224,
+      224
+    ],
+    "imagenet_mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "imagenet_std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "random_projection_sha256": "69b4bb55c13a0f9fe39c25da9f8c2e11c1bef653015f6df2308d60ac514e1e05"
+  },
+  "training": {
+    "seed": 42,
+    "batch_size": 32,
+    "learning_rate": 0.001,
+    "max_epochs": 20,
+    "patience": 5,
+    "loss": "BCEWithLogitsLoss (unweighted)",
+    "optimizer": "Adam",
+    "selection": "best full-dev BCE loss",
+    "freeze_bn": false,
+    "backbone_weights": "torchvision",
+    "limit": null
+  },
+  "data": {
+    "train_manifest": "/home/toastu/Research/Spoof Detection/manifests/e1_1_frontend/randproj128_train.csv",
+    "train_manifest_sha256": "ada6ecffd7e72682e81a51ab9fdb5a7743bed9bce88af14a51c9c773d6950f9d",
+    "train_rows": 10080,
+    "dev_manifest": "/home/toastu/Research/Spoof Detection/manifests/e1_1_frontend/randproj128_dev.csv",
+    "dev_manifest_sha256": "cfeb5c2da0b085080040f8a3fc903dc238a2202589f10fe2ec176f76ce904371",
+    "dev_rows": 24844
+  },
+  "model": {
+    "architecture": "ResNet18 -> Linear(512,128) -> ReLU -> Dropout(0.5) -> Linear(128,1)",
+    "frozen": "backbone parameters requires_grad=False",
+    "batch_norm": "train mode (baseline-faithful)",
+    "head_init": "torch.manual_seed(42) + reset_parameters()",
+    "backbone_parity": {
+      "checked_keys": 60,
+      "mismatched_keys": [],
+      "reference_checkpoint": "/home/toastu/Research/Spoof Detection/Models/Iteration1/best_audio_spoof_model_unweighted.pth",
+      "reference_sha256": "abf8d9c9169d363bf9e9076b61689056a78d814c95de9634aea9acf96afc54d8",
+      "note": "Conv/BN affine weights and biases only; batch-norm running statistics are excluded because the baseline updated them."
+    }
+  },
+  "result": {
+    "checkpoint": {
+      "path": "/home/toastu/Research/Spoof Detection/Models/Iteration1/e_1_1/randproj128/resnet18_frozen_randproj128.pth",
+      "sha256": "54cd0d8f707cec6b8f733c991c6c7676ae456e17f9085a04c9813cc3f119dd12",
+      "state_dict_keys": 124,
+      "remapped_keys": 124,
+      "missing_keys": [],
+      "unexpected_keys": [],
+      "total_parameters": 11242305,
+      "backbone_parameters": 11176512,
+      "head_parameters": 65793,
+      "head_state_sha256": "d44907bce7ac7fa78b34fd000497c6c355bc88807657cc1e9af5d878843be198",
+      "head_last_bias": -0.23074813187122345,
+      "batch_norm_steps": [
+        3465
+      ]
+    },
+    "best_epoch": 11,
+    "epochs_run": 16,
+    "best_dev_loss": 0.23246910595745923,
+    "best_dev_eer": 0.19702406299938208,
+    "best_dev_auc": 0.8846999028766098,
+    "train_log": "/home/toastu/Research/Spoof Detection/Models/Iteration1/e_1_1/randproj128/train_log.csv"
+  },
+  "environment": {
+    "python": "3.14.8",
+    "platform": "Linux-7.2.9-201.fc44.x86_64-x86_64-with-glibc2.43",
+    "torch": "2.15.0+cu132",
+    "torchvision": "0.29.2+cu132",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "librosa": "1.0.0",
+    "matplotlib": "3.11.2",
+    "cuda_available": true,
+    "cudnn_version": 92600,
+    "device": "cuda",
+    "device_name": "NVIDIA GeForce RTX 3050 Laptop GPU"
+  },
+  "git": {
+    "commit": "9881dbf6a5cafe8fe566f035d32b86b00a8cba21",
+    "dirty": true,
+    "status_porcelain": [
+      "?? Models/Iteration1/e_1_1/linear_stft/",
+      "?? Models/Iteration1/e_1_1/mel128/",
+      "?? Models/Iteration1/e_1_1/mel256/",
+      "?? Models/Iteration1/e_1_1/mel64/",
+      "?? Models/Iteration1/e_1_1/mfcc40/",
+      "?? Models/Iteration1/e_1_1/randproj128/",
+      "?? manifests/e1_1_frontend/"
+    ]
+  }
+}

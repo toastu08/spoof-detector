@@ -1,0 +1,117 @@
+{
+  "experiment": "E1.1",
+  "generated_at_utc": "2026-11-20T14:36:41+00:00",
+  "command": "'/home/toastu/Research/Spoof Detection/.venv/bin/python' scripts/train_e1_1_probes.py --frontends mel64 mel128 mel256 linear_stft mfcc40 randproj128 --image-root data/derived/e1_1_frontend --checkpoint-root Models/Iteration1/e_1_1",
+  "frontend": "mel128",
+  "frontend_payload": {
+    "version": "mel128-magma-4s-v1",
+    "frontend": "mel128",
+    "description": "Existing 128-band mel contract (control)",
+    "params": {
+      "n_mels": 128,
+      "n_fft": 2048,
+      "hop_length": 512,
+      "power_to_db_ref": "np.max"
+    },
+    "sample_rate": 16000,
+    "target_seconds": 4,
+    "target_length": 64000,
+    "colormap": "magma",
+    "render": "plt.imsave(cmap='magma', origin='lower')",
+    "resize": [
+      224,
+      224
+    ],
+    "imagenet_mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "imagenet_std": [
+      0.229,
+      0.224,
+      0.225
+    ]
+  },
+  "training": {
+    "seed": 42,
+    "batch_size": 32,
+    "learning_rate": 0.001,
+    "max_epochs": 20,
+    "patience": 5,
+    "loss": "BCEWithLogitsLoss (unweighted)",
+    "optimizer": "Adam",
+    "selection": "best full-dev BCE loss",
+    "freeze_bn": false,
+    "backbone_weights": "torchvision",
+    "limit": null
+  },
+  "data": {
+    "train_manifest": "/home/toastu/Research/Spoof Detection/manifests/e1_1_frontend/mel128_train.csv",
+    "train_manifest_sha256": "e4744bc252ff3db5d492891e2f4af3d9c4b3b6c8ce89b8f5f3b9972400c78c33",
+    "train_rows": 10080,
+    "dev_manifest": "/home/toastu/Research/Spoof Detection/manifests/e1_1_frontend/mel128_dev.csv",
+    "dev_manifest_sha256": "6a63afdb26281454e61fa9a7b3e26f85653b871886c03e90364c9793fc0edfcf",
+    "dev_rows": 24844
+  },
+  "model": {
+    "architecture": "ResNet18 -> Linear(512,128) -> ReLU -> Dropout(0.5) -> Linear(128,1)",
+    "frozen": "backbone parameters requires_grad=False",
+    "batch_norm": "train mode (baseline-faithful)",
+    "head_init": "torch.manual_seed(42) + reset_parameters()",
+    "backbone_parity": {
+      "checked_keys": 60,
+      "mismatched_keys": [],
+      "reference_checkpoint": "/home/toastu/Research/Spoof Detection/Models/Iteration1/best_audio_spoof_model_unweighted.pth",
+      "reference_sha256": "abf8d9c9169d363bf9e9076b61689056a78d814c95de9634aea9acf96afc54d8",
+      "note": "Conv/BN affine weights and biases only; batch-norm running statistics are excluded because the baseline updated them."
+    }
+  },
+  "result": {
+    "checkpoint": {
+      "path": "/home/toastu/Research/Spoof Detection/Models/Iteration1/e_1_1/mel128/resnet18_frozen_mel128.pth",
+      "sha256": "c081a699bfcd25578b055f1c25d7d3352dfbe6f39bdec83b342547aea171fa88",
+      "state_dict_keys": 124,
+      "remapped_keys": 124,
+      "missing_keys": [],
+      "unexpected_keys": [],
+      "total_parameters": 11242305,
+      "backbone_parameters": 11176512,
+      "head_parameters": 65793,
+      "head_state_sha256": "36f2a37c5b9a6cbefd5149895e754dd31addde0adf4eae72a4a1e507d00db36d",
+      "head_last_bias": -0.5761067271232605,
+      "batch_norm_steps": [
+        6300
+      ]
+    },
+    "best_epoch": 20,
+    "epochs_run": 20,
+    "best_dev_loss": 0.08540629553388175,
+    "best_dev_eer": 0.05684443190209759,
+    "best_dev_auc": 0.9875538917231214,
+    "train_log": "/home/toastu/Research/Spoof Detection/Models/Iteration1/e_1_1/mel128/train_log.csv"
+  },
+  "environment": {
+    "python": "3.14.8",
+    "platform": "Linux-7.2.9-201.fc44.x86_64-x86_64-with-glibc2.43",
+    "torch": "2.15.0+cu132",
+    "torchvision": "0.29.2+cu132",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "librosa": "1.0.0",
+    "matplotlib": "3.11.2",
+    "cuda_available": true,
+    "cudnn_version": 92600,
+    "device": "cuda",
+    "device_name": "NVIDIA GeForce RTX 3050 Laptop GPU"
+  },
+  "git": {
+    "commit": "9881dbf6a5cafe8fe566f035d32b86b00a8cba21",
+    "dirty": true,
+    "status_porcelain": [
+      "?? Models/Iteration1/e_1_1/mel128/",
+      "?? Models/Iteration1/e_1_1/mel64/",
+      "?? manifests/e1_1_frontend/"
+    ]
+  }
+}
