@@ -91,17 +91,20 @@ def normalize_mel_db(spec_db: np.ndarray) -> np.ndarray:
 def colorize_mel(
     normalized: np.ndarray,
     cmap: str = COLORMAP,
+    flip: bool = True,
 ) -> np.ndarray:
-    """Map ``[0, 1]`` values through ``cmap`` and flip vertically.
+    """Map ``[0, 1]`` values through ``cmap`` and optionally flip vertically.
 
-    Returns an ``(n_mels, frames, 3)`` ``uint8`` RGB array.  The flip is the
-    ``origin='lower'`` orientation used by the dataset export.
+    Returns an ``(n_mels, frames, 3)`` ``uint8`` RGB array.  The default flip is
+    the ``origin='lower'`` orientation used by the dataset export.  ``flip`` is
+    only overridden by a documented rendering ablation (E1.2).
     """
     import matplotlib.pyplot as plt
 
     rgba = plt.get_cmap(cmap)(np.asarray(normalized))
-    flipped = np.flipud(rgba)
-    return (flipped[:, :, :3] * 255).astype(np.uint8)
+    if flip:
+        rgba = np.flipud(rgba)
+    return (rgba[:, :, :3] * 255).astype(np.uint8)
 
 
 def render_mel_rgb(
@@ -116,13 +119,29 @@ def save_mel_spectrogram_png(
     spec_db: np.ndarray,
     output_path: str | Path,
     cmap: str = COLORMAP,
+    origin: str = "lower",
+    vmin: float | None = None,
+    vmax: float | None = None,
 ) -> Path:
-    """Render ``spec_db`` to an RGBA PNG exactly as the dataset export did."""
+    """Render ``spec_db`` to an RGBA PNG exactly as the dataset export did.
+
+    The default ``origin='lower'`` and autoscaled ``vmin``/``vmax`` preserve the
+    existing contract byte-for-byte.  The other options exist only for the E1.2
+    rendering ablation (orientation and fixed-range raw dB); changing a default
+    here changes every stored image and requires an explicit ablation.
+    """
     import matplotlib.pyplot as plt
 
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    plt.imsave(output_path, spec_db, cmap=cmap, origin="lower")
+    plt.imsave(
+        output_path,
+        spec_db,
+        cmap=cmap,
+        origin=origin,
+        vmin=vmin,
+        vmax=vmax,
+    )
     return output_path
 
 

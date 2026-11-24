@@ -45,6 +45,7 @@ from spoof_detection.preprocess import (  # noqa: E402
     load_mel_image,
     normalize_mel_db,
     render_mel_rgb,
+    save_mel_spectrogram_png,
 )
 from spoof_detection.protocol import load_cm_protocol  # noqa: E402
 
@@ -200,6 +201,33 @@ class RenderingTest(unittest.TestCase):
         self.assertEqual(rgb.dtype, np.uint8)
         self.assertGreaterEqual(int(rgb.min()), 0)
         self.assertLessEqual(int(rgb.max()), 255)
+
+    def test_flip_parameter_undoes_vertical_flip(self) -> None:
+        normalized = np.array([[0.0, 0.5], [0.25, 1.0]])
+        flipped = colorize_mel(normalized)
+        unflipped = colorize_mel(normalized, flip=False)
+        np.testing.assert_array_equal(np.flipud(flipped), unflipped)
+
+    def test_save_mel_spectrogram_origin_defaults_to_lower(self) -> None:
+        spec = np.array([[0.0, 0.1], [0.2, 0.3]])
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            default_path = root / "default.png"
+            lower_path = root / "lower.png"
+            upper_path = root / "upper.png"
+            save_mel_spectrogram_png(spec, default_path)
+            save_mel_spectrogram_png(spec, lower_path, origin="lower")
+            save_mel_spectrogram_png(spec, upper_path, origin="upper")
+            self.assertEqual(
+                default_path.read_bytes(), lower_path.read_bytes()
+            )
+            with Image.open(default_path) as image:
+                default_rgb = np.asarray(image.convert("RGB"))
+            with Image.open(upper_path) as image:
+                upper_rgb = np.asarray(image.convert("RGB"))
+            np.testing.assert_array_equal(
+                np.flipud(default_rgb), upper_rgb
+            )
 
 
 class InferenceTransformTest(unittest.TestCase):

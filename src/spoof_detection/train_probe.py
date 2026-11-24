@@ -1,7 +1,8 @@
-"""Seeded head-only probe training for the E1.1 front-end ablation.
+"""Seeded head-only probe training for the E1.1 and E1.2 ablations.
 
-The classifier head is retrained for every front-end while the ResNet18 backbone
-is frozen, matching the first-iteration recipe recorded in ``2_model.ipynb``:
+The classifier head is retrained for every image condition while the ResNet18
+backbone is frozen, matching the first-iteration recipe recorded in
+``2_model.ipynb``:
 
 * ``requires_grad=False`` on the backbone, but the model is in ``train()`` mode,
   so batch-norm running statistics still update;
@@ -12,7 +13,8 @@ The differences from the notebook are deliberate and documented in the E1.1
 report: a fixed seed (the notebook recorded none), a deterministic head
 re-initialisation shared by all conditions, and a recorded command/config.
 
-All reusable logic lives here; ``scripts/train_e1_1_probes.py`` is a thin CLI.
+All reusable logic lives here; ``scripts/train_e1_1_probes.py`` and
+``scripts/train_e1_2_probes.py`` are thin CLIs.
 """
 
 from __future__ import annotations
@@ -80,6 +82,7 @@ class ProbeTrainingConfig:
     force: bool = False
     command: str = ""
     experiment_id: str = EXPERIMENT_ID
+    provenance_payload: dict[str, object] | None = None
 
 
 @dataclass(frozen=True)
@@ -572,7 +575,11 @@ def train_probe(config: ProbeTrainingConfig) -> ProbeTrainingResult:
         "generated_at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "command": config.command,
         "frontend": config.frontend,
-        "frontend_payload": frontend_payload(config.frontend),
+        "frontend_payload": (
+            config.provenance_payload
+            if config.provenance_payload is not None
+            else frontend_payload(config.frontend)
+        ),
         "training": {
             "seed": config.seed,
             "batch_size": config.batch_size,

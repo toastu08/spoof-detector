@@ -1,5 +1,6 @@
 .PHONY: app test verify-data audit-data evaluate evaluate-rerun freeze-baseline \
-	e1-1-export e1-1-train e1-1-evaluate e1-1-summarize e1-1
+	e1-1-export e1-1-train e1-1-evaluate e1-1-summarize e1-1 \
+	e1-2-export e1-2-train e1-2-evaluate e1-2-summarize e1-2
 
 CHECKPOINTS = \
 	--checkpoint Models/Iteration1/best_audio_spoof_model_unweighted.pth \
@@ -12,6 +13,13 @@ E1_1_FRONTENDS = mel64 mel128 mel256 linear_stft mfcc40 randproj128
 E1_1_IMAGE_ROOT ?= data/derived/e1_1_frontend
 E1_1_MODEL_ROOT ?= Models/Iteration1/e_1_1
 E1_1_REPORT_ROOT ?= reports/phase1/e1_1_frontend
+
+E1_2_CONDITIONS = magma_flip viridis_flip gray_flip rawdb_flip \
+	magma_noflip viridis_noflip gray_noflip magma_flip_rgb
+E1_2_SEEDS ?= 42
+E1_2_IMAGE_ROOT ?= data/derived/e1_2_rendering
+E1_2_MODEL_ROOT ?= Models/Iteration1/e_1_2
+E1_2_REPORT_ROOT ?= reports/phase1/e1_2_rendering
 
 app:
 	@clear
@@ -70,3 +78,34 @@ e1-1-summarize:
 		--output-root $(E1_1_REPORT_ROOT)
 
 e1-1: e1-1-export e1-1-train e1-1-evaluate e1-1-summarize
+
+e1-2-export:
+	uv run python scripts/export_e1_2_rendering.py \
+		--conditions $(E1_2_CONDITIONS) \
+		--output-root $(E1_2_IMAGE_ROOT) \
+		--manifest-root manifests/e1_2_rendering \
+		--report-path $(E1_2_REPORT_ROOT)/export_manifest.json
+
+e1-2-train:
+	uv run python scripts/train_e1_2_probes.py \
+		--conditions $(E1_2_CONDITIONS) \
+		--seeds $(E1_2_SEEDS) \
+		--image-root $(E1_2_IMAGE_ROOT) \
+		--checkpoint-root $(E1_2_MODEL_ROOT)
+
+e1-2-evaluate:
+	uv run python scripts/evaluate_e1_2.py \
+		--conditions $(E1_2_CONDITIONS) \
+		--seeds $(E1_2_SEEDS) \
+		--checkpoint-root $(E1_2_MODEL_ROOT) \
+		--image-root $(E1_2_IMAGE_ROOT) \
+		--output-root $(E1_2_REPORT_ROOT)/runs
+
+e1-2-summarize:
+	uv run python scripts/summarize_e1_2.py \
+		--conditions $(E1_2_CONDITIONS) \
+		--seeds $(E1_2_SEEDS) \
+		--runs-root $(E1_2_REPORT_ROOT)/runs \
+		--output-root $(E1_2_REPORT_ROOT)
+
+e1-2: e1-2-export e1-2-train e1-2-evaluate e1-2-summarize

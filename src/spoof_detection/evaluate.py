@@ -48,6 +48,7 @@ from tqdm import tqdm
 from . import preprocess
 from .dataset import repo_relative, sha256_file
 from .frontends import FRONTEND_ORDER, frontend_payload
+from .rendering import RENDER_CONDITION_ORDER, rendering_payload
 from .metrics import compute_eer, summarize_split
 from .model import (
     AudioSpoofDetector,
@@ -71,6 +72,19 @@ SAMPLE_SELECTION = (
     "deterministic head-stratified: first N/2 records from each class, "
     "sorted by source row"
 )
+
+# E1.1 names a time-frequency front-end; E1.2 names a rendering condition over
+# the fixed mel128 representation.  Both are recorded through --frontend.
+ALL_IMAGE_CONDITIONS = tuple(
+    dict.fromkeys((*FRONTEND_ORDER, *RENDER_CONDITION_ORDER))
+)
+
+
+def _payload_for_condition(name: str) -> dict[str, object]:
+    """Return preprocessing provenance for an E1.1 or E1.2 image condition."""
+    if name in FRONTEND_ORDER:
+        return frontend_payload(name)
+    return rendering_payload(name)
 
 
 @dataclass(frozen=True)
@@ -1100,7 +1114,7 @@ def run_evaluation(config: EvaluationConfig) -> list[Path]:
                 "cudnn_deterministic": True,
             },
             "preprocessing": (
-                frontend_payload(config.frontend)
+                _payload_for_condition(config.frontend)
                 if config.frontend is not None
                 else {
                     "version": preprocess.PREPROCESSING_VERSION,
@@ -1314,11 +1328,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--frontend",
-        choices=FRONTEND_ORDER,
+        choices=ALL_IMAGE_CONDITIONS,
         default=None,
         help=(
-            "optional front-end label recorded in metrics.json preprocessing "
-            "provenance; does not change how PNGs are scored"
+            "optional image-condition label (E1.1 front-end or E1.2 rendering "
+            "condition) recorded in metrics.json preprocessing provenance; "
+            "does not change how PNGs are scored"
         ),
     )
     parser.add_argument(
