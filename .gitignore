@@ -2,7 +2,8 @@
 # Spoof Detection - repository ignore rules
 #
 # Intentionally TRACKED (do not ignore):
-#   - notebooks (*.ipynb)              canonical experiment record
+#   - notebooks/                       Jupyter notebooks, canonical experiment record
+#   - notes/                           user's personal notes (agents must not read)
 #   - manifests/                       train_seed42.csv provenance manifest
 #   - reports/                         experiment reports and small result tables
 #   - Models/*/MODELS.md               model iteration documentation
@@ -11,6 +12,7 @@
 #   - .python-version                  pinned interpreter
 #
 # Intentionally IGNORED:
+#   - Bibliography/                    user's papers (agents must not read)
 #   - data/                            ~18 GB; re-download/regenerate (see AGENTS.md)
 #   - model checkpoints (*.pth etc.)   never commit binaries (AGENTS.md G8)
 #   - .venv/                           local environment, ~6 GB
@@ -108,6 +110,13 @@ venv.bak/
 ASVspoof2019*.zip
 ASVspoof2019*.tar.gz
 
+# E1.1 per-frontend render manifests: 18 CSVs, ~134 MB of per-image paths and
+# SHA-256 values. Regenerate with `make e1-1-export`. The small provenance and
+# parity summary is committed at reports/phase1/e1_1_frontend/export_manifest.json
+# instead, and `manifests/train_seed42.csv` (the training membership record)
+# stays tracked.
+/manifests/e1_1_frontend/
+
 # ---------------------------------------------------------------------------
 # Logs and temporary files
 # ---------------------------------------------------------------------------
@@ -119,4 +128,6 @@ logs/
 # ---------------------------------------------------------------------------
 # Others
 # ---------------------------------------------------------------------------
-Bibliography/
+# Papers and sources for the user. Not committed; agents must not read it
+# (see AGENTS.md G1).
+/Bibliography/

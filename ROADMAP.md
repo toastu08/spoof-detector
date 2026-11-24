@@ -5,16 +5,19 @@ Prioritized research roadmap for the audio spoof detection project.
 Read [`AGENTS.md`](./AGENTS.md) first. It contains the operating rules, verified
 current state, and hard guardrails. This document assumes those rules.
 
-Last updated: 2026-11-14.
+Last updated: 2026-11-23.
 
-**Current status (2026-11-14):** E0.1, E0.2, E0.3, E0.4, and E0.5 are complete.
-The 10,080-clip training subset is reconstructed at
+**Current status (2026-11-23):** Phase 0 (E0.1–E0.5) is complete, and Phase 1 has
+started with E1.1 complete. The 10,080-clip training subset is reconstructed at
 `data/derived/train_seed42/` with manifest `manifests/train_seed42.csv`; the
 evaluation harness scores full dev/eval reproducibly; the two-checkpoint baseline
 is frozen at `reports/baseline/README.md`; preprocessing, checkpoint-loading, and
 app contract tests pass via `make test`; and the data and leakage audit finds no
-train/dev/eval leakage (`reports/audit/data_audit.md`). Phase 0 is complete, so
-Phase 1 can start; E1.4 is the next priority.
+train/dev/eval leakage (`reports/audit/data_audit.md`). E1.1 compared six
+time-frequency front-ends with a frozen backbone and found that mel resolution
+matters up to 128 bands but that mel warping is not required for baseline-like
+in-domain performance (`reports/phase1/e1_1_frontend/README.md`). E1.4 is the next
+priority.
 
 ---
 
@@ -130,7 +133,8 @@ is closed.
 
 - **Question:** Can we recover the exact first-iteration training set from source
   audio?
-- **Method:** Follow the recipe recorded in `1.1_data_prep-train-old.ipynb`.
+- **Method:** Follow the recipe recorded in
+  `notebooks/model/1.1_data_prep-train-old.ipynb`.
   Regenerate images from `data/LA/` into a new directory
   (`data/derived/train_seed42/`, never overwriting existing data). Record source
   FLAC path, protocol row, speaker, attack, label, and SHA-256 for every clip.
@@ -272,6 +276,11 @@ cues from dataset and preprocessing shortcuts.
 
 ### E1.1 Is the mel spectrogram necessary?
 
+**Status: complete (2026-11-23).** Report:
+[`reports/phase1/e1_1_frontend/README.md`](reports/phase1/e1_1_frontend/README.md).
+Pre-registration:
+[`reports/phase1/e1_1_frontend/PREREGISTRATION.md`](reports/phase1/e1_1_frontend/PREREGISTRATION.md).
+
 - **Question:** Does the model need a mel spectrogram, or would any image-like
   time-frequency representation work?
 - **Method:** With the backbone frozen and the same train/dev/eval splits, compare
@@ -281,6 +290,23 @@ cues from dataset and preprocessing shortcuts.
 - **Success criterion:** An EER table that shows whether performance is sensitive
   to mel resolution and whether a non-mel representation is competitive.
 - **Artifact:** `reports/phase1/e1_1_frontend/` with configs and result tables.
+- **Result:** Six head-only probes on one frozen ResNet18, seed 42, 10,080-clip
+  training manifest, dev (A01–A06, 24,844 clips, 2,548/22,296) for early stopping
+  and eval (A07–A19, 71,237 clips, 7,355/63,882) as the clean estimate. Eval EER
+  (threshold-free): `mel256` 11.31% / AUC 0.9525, `mel128` 11.41% / 0.9536,
+  `mel64` 13.01% / 0.9434, `linear_stft` 13.98% / 0.9371, `randproj128` 17.04% /
+  0.9064, `mfcc40` 18.56% / 0.8963. The `mel128` probe reproduces the frozen E0.3
+  unweighted baseline to 0.09 eval points. H1 supported: resolution matters up to
+  128 bands, but the 128→256 step is a 0.10-point tie on eval. H2 partially
+  supported: `linear_stft` ties `mel128` on dev (5.69% vs 5.68%) and loses 2.57
+  eval points, so mel buys shift-robustness, not in-domain discrimination. H3
+  supported as stated (`randproj128` +5.63 points, ~2× EER on A18/A19), but its
+  pre-registered "image-statistics shortcut" reading is withdrawn as untestable in
+  this design. The largest finding is per-attack reshuffling: `randproj128` and
+  `linear_stft` each win 4 of 13 eval attacks, with signed per-attack swings of
+  22–26 points between their best and worst attacks.
+  `mel128` is kept as the canonical contract; `mel256` is the candidate of record.
+  Single seed, so the 1–3 point gaps are suggestive rather than decisive.
 
 ### E1.2 Do colormap and orientation matter?
 
@@ -519,17 +545,21 @@ safe to expose.
 
 ## 10. Prioritized next actions
 
-E0.1–E0.5 are complete, so Phase 0 is closed. The remaining prioritized actions
-are:
+E0.1–E0.5 and E1.1 are complete, so Phase 0 is closed and Phase 1 is underway. The
+remaining prioritized actions are:
 
 | Priority | Experiment | Reason |
 |---:|---|---|
-| 1 | E1.4 | Cheapest high-information test: is the baseline using shortcuts? |
-| 2 | E1.2 | Clarifies whether the image rendering is doing real work |
+| 1 | E1.4 | Cheapest high-information test: is the baseline using shortcuts? E1.1 could not test this. |
+| 2 | E1.2 | Clarifies whether the image rendering is doing real work; E1.1 held rendering fixed. |
 | 3 | E2.1 | Establishes the domain gap before investing in scaling |
 | 4 | E1.3 | Tests whether unfreezing is worth the compute |
 | 5 | E3.1 | Guides the data-vs-architecture decision |
-| 6 | E2.5 | Required before the app can report honest confidence |
+| 6 | E2.5 | Required before the app can report honest confidence; E1.1 found `FPR@0.5` is dominated by score shift |
+
+One cheap follow-up to E1.1 is not a new experiment ID: replicate `mel128`,
+`mel256`, `linear_stft` and `randproj128` with 3 extra seeds to put error bars on
+the 1–3 point differences, since every E1.1 condition is currently a single run.
 
 Do not start a lower-priority experiment while a higher-priority gate item is
 unresolved, unless the user explicitly reprioritizes.

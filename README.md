@@ -5,14 +5,18 @@ Logical Access (LA). The current baseline renders a 4-second clip as a
 magma-coloured mel spectrogram and classifies it with a frozen ImageNet-pretrained
 ResNet18 plus a small linear head.
 
-> **Status (2026-11-14):** Phase 0, E0.1–E0.5 complete. The 10,080-clip
-> training subset is reconstructed at `data/derived/train_seed42/` with manifest
-> `manifests/train_seed42.csv`. The evaluation harness is in
-> `src/spoof_detection/evaluate.py`, the frozen two-checkpoint baseline is in
+> **Status (2026-11-23):** Phase 0 (E0.1–E0.5) complete, Phase 1 started, E1.1
+> complete. The 10,080-clip training subset is reconstructed at
+> `data/derived/train_seed42/` with manifest `manifests/train_seed42.csv`. The
+> evaluation harness is in `src/spoof_detection/evaluate.py`, the frozen
+> two-checkpoint baseline is in
 > [`reports/baseline/README.md`](reports/baseline/README.md), the
 > preprocessing/checkpoint/app contract tests pass via `make test`, and the data
 > and leakage audit ([`reports/audit/data_audit.md`](reports/audit/data_audit.md))
-> finds no train/dev/eval leakage.
+> finds no train/dev/eval leakage. E1.1 compared six time-frequency front-ends on
+> a frozen backbone: mel resolution matters up to 128 bands, but mel warping is not
+> required for baseline-like in-domain performance
+> ([`reports/phase1/e1_1_frontend/README.md`](reports/phase1/e1_1_frontend/README.md)).
 
 The sigmoid output is a **score, not a calibrated probability**. The demo's
 "confidence" is `max(p, 1 - p)` and must not be read as the probability that a
@@ -176,15 +180,17 @@ use it, cite:
 
 | Path | Purpose |
 |---|---|
-| `1.1_data_prep-train-old.ipynb` | Canonical record of the original 10,080-clip subset |
-| `1.1_data_prep-train.ipynb`, `1.2_data_prep-dev.ipynb`, `1.3_data_prep-eval.ipynb` | Spectrogram export notebooks |
-| `2_model.ipynb` | Original training/evaluation notebook |
+| `notebooks/model/` | Data-prep, training, and evaluation notebooks (canonical experiment record) |
+| `notebooks/ResNet18_inspection/` | Exploratory ResNet18 inspection notebook and sample spectrograms |
+| `notes/` | Personal project notes (not experiment artifacts) |
+| `Bibliography/` | Papers and sources for the user (not committed) |
 | `app.py`, `templates/` | FastAPI inference demo |
-| `src/spoof_detection/` | Reusable protocol, sampling, preprocessing, model-loading, metrics, and evaluation code |
-| `scripts/` | Reproduction and dataset-verification entry points |
+| `src/spoof_detection/` | Reusable protocol, sampling, preprocessing, front-end, model-loading, metrics, and evaluation code |
+| `scripts/` | Reproduction, dataset-verification, and E1.1 pipeline entry points |
 | `manifests/` | Data manifests and provenance metadata |
-| `reports/` | Experiment reports |
-| `Models/` | Model iteration notes and (gitignored) checkpoints |
+| `reports/` | Experiment reports (`phase0/`, `phase1/`, `audit/`, `baseline/`) |
+| `reports/phase1/e1_1_frontend/` | E1.1 six-front-end ablation report, pre-registration, and result tables |
+| `Models/` | Model iteration notes and (gitignored) checkpoints; E1.1 probes in `Models/Iteration1/e_1_1/` |
 | `data/` | Downloaded/derived data (gitignored) |
 
 ## Baseline evaluation
@@ -214,6 +220,26 @@ the manifest hash, metric contract, run-to-run EER tolerance, and a
 trained-vs-reinitialised head control. See
 [`reports/phase0/E0.2/README.md`](reports/phase0/E0.2/README.md) for the harness
 design and the unweighted-only first results.
+
+## Front-end ablation (E1.1)
+
+Compare six time-frequency front-ends (`mel64`, `mel128`, `mel256`, `linear_stft`,
+`mfcc40`, `randproj128`) with a frozen backbone and an identical head-only training
+budget:
+
+```bash
+make e1-1        # export -> train -> evaluate -> summarize
+```
+
+Images are written to `data/derived/e1_1_frontend/` (gitignored), probes to
+`Models/Iteration1/e_1_1/<frontend>/`, and results to
+`reports/phase1/e1_1_frontend/`. `mel128` is pixel-identical to `data/dataset_img`
+and its probe reproduces the frozen baseline to 0.09 eval EER points; that parity is
+the validation gate for the other five conditions. Findings, verdicts and
+limitations are in
+[`reports/phase1/e1_1_frontend/README.md`](reports/phase1/e1_1_frontend/README.md).
+`mel128` remains the canonical preprocessing contract; no contract change was
+made.
 
 ## Data and leakage audit
 

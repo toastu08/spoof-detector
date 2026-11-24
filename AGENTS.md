@@ -6,16 +6,19 @@ Read this file before changing code, data, models, or experiment claims. For the
 prioritized research plan, read [`ROADMAP.md`](./ROADMAP.md). This file records
 what is true today; the roadmap records what we intend to test next.
 
-Last verified: 2026-11-14. Notebook MCP status re-verified 2026-11-13.
+Last verified: 2026-11-23. Notebook MCP status re-verified 2026-11-13.
 
-**Current status (2026-11-14):** E0.1, E0.2, E0.3, E0.4, and E0.5 complete. The
-10,080-clip training subset is reconstructed at `data/derived/train_seed42/`
-with manifest `manifests/train_seed42.csv`. The evaluation harness scores full
-dev/eval from one command, both first-iteration checkpoints have a frozen,
-reproducibility-audited baseline under `reports/baseline/`, and preprocessing,
-checkpoint-loading, and app-contract tests pass via `make test`. The data and
-leakage audit (`reports/audit/data_audit.md`) finds no train/dev/eval leakage, so
-Phase 0 is complete and Phase 1 can start.
+**Current status (2026-11-23):** E0.1, E0.2, E0.3, E0.4, and E0.5 complete, and
+E1.1 complete. The 10,080-clip training subset is reconstructed at
+`data/derived/train_seed42/` with manifest `manifests/train_seed42.csv`. The
+evaluation harness scores full dev/eval from one command, both first-iteration
+checkpoints have a frozen, reproducibility-audited baseline under
+`reports/baseline/`, and preprocessing, checkpoint-loading, and app-contract tests
+pass via `make test`. The data and leakage audit (`reports/audit/data_audit.md`)
+finds no train/dev/eval leakage, so Phase 0 is complete. E1.1 compared six
+time-frequency front-ends on a frozen backbone and is reported in
+`reports/phase1/e1_1_frontend/README.md`; `mel128` remains the canonical
+preprocessing contract.
 
 ---
 
@@ -55,7 +58,8 @@ was trained on.
    threshold-aware reporting, and freeze the two-checkpoint baseline table.
    **Complete (E0.2/E0.3).**
 3. Explain why the frozen ImageNet backbone works: spectral content, colormap
-   statistics, or dataset shortcuts.
+   statistics, or dataset shortcuts. **Started (E1.1: the mel warping is not
+   required in-domain, but rendering and shortcut controls remain open; see 4.11).**
 4. Measure the capability envelope under channel, codec, language, speaker, and
    unseen-attack shift.
 
@@ -81,11 +85,14 @@ was trained on.
 
 | Path | Purpose | Status |
 |---|---|---|
-| `1.1_data_prep-train-old.ipynb` | Canonical record of the original 10,080-clip training subset and its preprocessing | Read-only reference; access via python-notebook MCP (see G1) |
-| `1.1_data_prep-train.ipynb` | Current train export notebook | Accessible via python-notebook MCP |
-| `1.2_data_prep-dev.ipynb` | Dev export notebook | Accessible via python-notebook MCP |
-| `1.3_data_prep-eval.ipynb` | Eval export notebook | Accessible via python-notebook MCP |
-| `2_model.ipynb` | Original training/evaluation notebook | Accessible via python-notebook MCP |
+| `notebooks/model/1.1_data_prep-train-old.ipynb` | Canonical record of the original 10,080-clip training subset and its preprocessing | Committed; read-only reference via python-notebook MCP (see G1) |
+| `notebooks/model/1.1_data_prep-train.ipynb` | Current train export notebook | Committed; python-notebook MCP |
+| `notebooks/model/1.2_data_prep-dev.ipynb` | Dev export notebook | Committed; python-notebook MCP |
+| `notebooks/model/1.3_data_prep-eval.ipynb` | Eval export notebook | Committed; python-notebook MCP |
+| `notebooks/model/2_model.ipynb` | Original training/evaluation notebook | Committed; python-notebook MCP |
+| `notebooks/ResNet18_inspection/` | Exploratory ResNet18 inspection notebook and sample spectrograms | Committed; python-notebook MCP |
+| `notes/` | User's personal project notes (Obsidian vault) | Committed; **agents must not read** (see G1) |
+| `Bibliography/` | Papers and sources for the user | **Gitignored; agents must not read** (see G1) |
 | `app.py` | FastAPI inference demo | Working; strict checkpoint load and shared preprocessing; see section 4.5 |
 | `templates/index.html` | Browser UI for the demo | Working |
 | `Models/Iteration1/` | First-iteration checkpoints, `MODELS.md`, and E1.1 probes under `e_1_1/` | Existing; renamed from the misspelled `Models/Itteration1/` on 2026-11-16 |
@@ -94,16 +101,18 @@ was trained on.
 | `data/archive.zip` | Kaggle download zip of the extracted `data/LA` tree | Deleted 2026-11-07 after verification; hashes kept in `manifests/asvspoof2019_la.meta.json` |
 | `data/dataset_img/` | Exported spectrogram PNGs and metadata for train/dev/eval | Existing; do not overwrite |
 | `data/derived/train_seed42/` | Reconstructed 10,080-image first-iteration training set (E0.1) | New; 257 MB; gitignored |
-| `manifests/` | Data manifests and metadata | `train_seed42.csv` + `.meta.json`; `asvspoof2019_la.meta.json` (dataset verification) |
-| `reports/` | Experiment reports | `phase0/E0.1/` … `phase0/E0.5/`; `audit/` |
+| `data/derived/e1_1_frontend/` | Six E1.1 front-end image sets, train/dev/eval (~637k PNGs, ~16 GB) | E1.1; gitignored |
+| `manifests/` | Data manifests and metadata | `train_seed42.csv` + `.meta.json`; `asvspoof2019_la.meta.json`; `e1_1_frontend/` (generated, 134 MB, gitignored) |
+| `reports/` | Experiment reports | `phase0/E0.1/` … `phase0/E0.5/`; `phase1/e1_1_frontend/`; `audit/` |
 | `reports/audit/` | E0.5 data/leakage audit report | `data_audit.md` + `data_audit.json` (PASS) |
-| `scripts/` | Thin CLI entry points | `reproduce_train_seed42.py`, `verify_asvspoof2019_la.py`, `freeze_baseline.py`, `audit_data.py` |
+| `reports/phase1/e1_1_frontend/` | E1.1 pre-registration, results, per-attack table, `export_manifest.json`, `README.md` | Complete; see 4.11 |
+| `scripts/` | Thin CLI entry points | `reproduce_train_seed42.py`, `verify_asvspoof2019_la.py`, `freeze_baseline.py`, `audit_data.py`, `export_e1_1_frontends.py`, `train_e1_1_probes.py`, `evaluate_e1_1.py`, `summarize_e1_1.py` |
 | `tests/test1/` | Eight ElevenLabs clips plus `test1-results.csv` | Existing; do not overwrite |
-| `tests/` | Automated tests | E0.1 reconstruction, dataset validation, metrics, model loading, evaluation, baseline audit, data audit, preprocessing contract, app contract |
-| `src/spoof_detection/` | Reusable package code | `protocol.py`, `sampling.py`, `preprocess.py`, `dataset.py`, `model.py`, `metrics.py`, `evaluate.py`, `baseline.py`, `audit.py` |
+| `tests/` | Automated tests | E0.1 reconstruction, dataset validation, metrics, model loading, evaluation, baseline audit, data audit, preprocessing contract, app contract, E1.1 front-ends/probe training/pipeline |
+| `src/spoof_detection/` | Reusable package code | `protocol.py`, `sampling.py`, `preprocess.py`, `frontends.py`, `frontend_export.py`, `train_probe.py`, `dataset.py`, `model.py`, `metrics.py`, `evaluate.py`, `baseline.py`, `audit.py` |
 | `reports/baseline/` | Frozen two-checkpoint `metrics.json`, per-clip scores, `summary.md`, and `freeze_report.json` | E0.3 two-checkpoint dev+eval baseline |
 | `pyproject.toml`, `uv.lock` | Project metadata and locked dependencies | Source of truth for dependencies |
-| `makefile` | `make app`, `make test`, `make verify-data`, `make audit-data`, `make evaluate`, `make evaluate-rerun`, `make freeze-baseline` | Working |
+| `makefile` | `make app`, `make test`, `make verify-data`, `make audit-data`, `make evaluate`, `make evaluate-rerun`, `make freeze-baseline`, `make e1-1{,-export,-train,-evaluate,-summarize}` | Working |
 | `README.md` | Setup, data acquisition, demo, and limitations | Written; keep commands in sync |
 
 ---
@@ -223,8 +232,8 @@ prefix and raises unless the missing and unexpected key lists are both empty.
 Do not trust a "loaded successfully" print without checking those lists; the
 strict loader makes the check unavoidable.
 
-Training configuration was read from `2_model.ipynb` via the python-notebook MCP
-on 2026-11-13:
+Training configuration was read from `notebooks/model/2_model.ipynb` via the
+python-notebook MCP on 2026-11-13:
 
 - Backbone frozen; head
   `Linear(512, 128) -> ReLU -> Dropout(0.5) -> Linear(128, 1)`.
@@ -256,8 +265,9 @@ The first iteration was trained on **10,080 clips**:
 
 **Status: reconstructed and verified on 2026-11-07.** The exact subset is on disk
 at `data/derived/train_seed42/` and recorded in `manifests/train_seed42.csv`. The
-canonical recipe remains `1.1_data_prep-train-old.ipynb` (execution_count 9) and
-is implemented in `src/spoof_detection/sampling.py` (`build_seed42_subset`).
+canonical recipe remains `notebooks/model/1.1_data_prep-train-old.ipynb`
+(execution_count 9) and is implemented in
+`src/spoof_detection/sampling.py` (`build_seed42_subset`).
 
 Verified facts:
 
@@ -418,7 +428,8 @@ fails on a deliberately broken prefix. `tests/test_app_contract.py` covers
 unsupported file rejection, temp-file cleanup, strict checkpoint loading, and the
 response contract (`p >= 0.5` is spoof; `confidence = max(p, 1-p)`).
 
-`make test` ran 116 tests at E0.4 (138 now, including the E0.5 audit suite). The
+`make test` ran 116 tests at E0.4; the suite is now 171 tests, including the E0.5
+audit suite and the E1.1 front-end, probe-training and pipeline tests. The
 full dev/eval image rerun after the preprocessing refactor is byte-identical to
 `reports/baseline/`. Full report: `reports/phase0/E0.4/README.md`.
 
@@ -447,12 +458,61 @@ Result on 2026-11-14: **all 15 checks PASS.** Verified facts:
 | E.1–E.3 baseline lineage | PASS: `selected_on: dev`, `source: in_run_dev`, eval threshold equals the re-derived dev threshold, artifacts match `freeze_report.json` |
 
 **No train/dev/eval leakage was found.** Dev remains a documented
-**model-selection split** (early stopping in `2_model.ipynb` and E0.3 threshold
-selection); eval was read only by the post-training inference cells (23 and 25)
-and is the clean estimate. Notebook evidence is in
+**model-selection split** (early stopping in `notebooks/model/2_model.ipynb` and
+E0.3 threshold selection); eval was read only by the post-training inference cells
+(23 and 25) and is the clean estimate. Notebook evidence is in
 `reports/phase0/E0.5/README.md`. The audit catches only exact byte duplicates
-and cannot speak to uncommitted historical runs. `make test` runs 138 tests
+and cannot speak to uncommitted historical runs. `make test` runs 171 tests
 including `tests/test_audit.py` (22 tests and a real-data structural audit).
+
+### 4.11 Front-end ablation (E1.1, complete)
+
+`reports/phase1/e1_1_frontend/README.md` reports the E1.1 ablation. Six
+time-frequency front-ends (`mel64`, `mel128`, `mel256`, `linear_stft`, `mfcc40`,
+`randproj128`) were rendered to `magma` PNGs under
+`data/derived/e1_1_frontend/<frontend>/{train,dev,eval}/`, and each got a fresh
+65,793-parameter head on the same frozen ResNet18. Recipe: seed 42, unweighted
+BCE, Adam 1e-3, batch 32, ≤20 epochs, patience 5 on full-dev loss, train-mode BN.
+Probes are in `Models/Iteration1/e_1_1/<frontend>/`.
+
+Contract: dev A01–A06, 24,844 (2,548/22,296), used for early stopping; eval
+A07–A19, 71,237 (7,355/63,882), the clean estimate; EER/AUC threshold-free.
+Eval EER / AUC:
+
+| Front-end | eval EER | eval AUC | ΔEER vs mel128 |
+|---|---:|---:|---:|
+| mel256 | 11.31% | 0.9525 | −0.10 |
+| mel128 | 11.41% | 0.9536 | — |
+| mel64 | 13.01% | 0.9434 | +1.60 |
+| linear_stft | 13.98% | 0.9371 | +2.57 |
+| randproj128 | 17.04% | 0.9064 | +5.63 |
+| mfcc40 | 18.56% | 0.8963 | +7.15 |
+
+Key verified facts:
+
+- `mel128` is pixel-identical to `data/dataset_img` (25/25 sampled clips per
+  split) and its probe reproduces the frozen E0.3 unweighted baseline to within
+  0.09 eval EER points, so the pipeline is faithful.
+- Dev EER: mel256 4.36%, mel128 5.68%, linear_stft 5.69%, mel64 10.05%,
+  mfcc40 14.49%, randproj128 19.71%.
+- H1 supported up to 128 bands; the 128→256 step is a 0.10-point tie on eval.
+- H2 partially supported: `linear_stft` ties `mel128` on dev but loses 2.57 eval
+  points, so mel buys shift-robustness, not in-domain discrimination.
+- H3 supported as stated; its pre-registered "image-statistics shortcut" reading
+  is withdrawn because all conditions share one rendering pipeline.
+- Per-attack reshuffling is the largest effect: `randproj128` and `linear_stft`
+  each win 4 of 13 eval attacks, with signed per-attack swings of 22–26 points
+  between their best and worst attacks.
+- **`mel128` remains the canonical preprocessing contract.** No step of section
+  4.2 changed; `mel256` is a documented candidate, not a replacement.
+- Every condition is a **single seed**, so the 1–3 point gaps are suggestive and
+  only the ≥5-point gaps are robust.
+
+Not yet covered: `make audit-data` hashes `data/dataset_img/` and
+`data/derived/train_seed42/` but not `data/derived/e1_1_frontend/`. The E1.1
+images are rendered from audited audio with the audited contract and `mel128` is
+pixel-identical to the audited export, but the ~637k new PNGs are not themselves
+hash-audited.
 
 ---
 
@@ -460,7 +520,18 @@ including `tests/test_audit.py` (22 tests and a real-data structural audit).
 
 These are not suggestions. If a task conflicts with one of them, stop and ask.
 
-### G1. Notebook access goes through the python-notebook MCP
+### G1. Notebook access and user-only directories
+
+Notebooks live under `notebooks/`, not at the repository root: `notebooks/model/`
+holds the data-prep and training notebooks, and `notebooks/ResNet18_inspection/`
+holds the exploratory inspection notebook. They are committed to git and are the
+canonical experiment record.
+
+**Never read `notes/` or `Bibliography/`.** Both are for the user only: `notes/`
+is a personal Obsidian vault (committed to git), and `Bibliography/` holds papers
+and sources (gitignored). Do not open, list, grep, hash, summarize, or otherwise
+pull them into context, and exclude both paths from repo-wide searches. They are
+not experiment evidence; reading them only wastes context.
 
 The python-notebook MCP server is fully working as of 2026-11-13; all eight tools
 are usable. Use its tools (`initialize_workspace`, `list_notebooks`,
@@ -488,8 +559,8 @@ Behaviour notes:
   tool refuses to run until it has been called, and relative paths are rejected.
   Its return value already lists the notebooks found, so it doubles as a first
   listing.
-- `list_notebooks(directory=".")` takes a workspace-relative subdirectory and
-  rejects paths that escape the workspace root (e.g. `"../.."`).
+- `list_notebooks(directory="notebooks")` takes a workspace-relative
+  subdirectory and rejects paths that escape the workspace root (e.g. `"../.."`).
 - Write tools reject absolute paths (and `../` traversal) outside the repository
   root. Use workspace-relative paths.
 - `create_notebook` writes a markdown title cell at index 0 plus a code cell.
@@ -501,9 +572,9 @@ still-running `server.py` process keeps the old code loaded and the same error
 will persist even though the file is fixed. If any other notebook tool fails,
 report the error instead of falling back to parsing notebook JSON.
 
-For training-subset provenance, reference `1.1_data_prep-train-old.ipynb` via the
-MCP; do not reproduce a full seed-42 join snippet in documentation or code unless
-the user asks for it.
+For training-subset provenance, reference
+`notebooks/model/1.1_data_prep-train-old.ipynb` via the MCP; do not reproduce a
+full seed-42 join snippet in documentation or code unless the user asks for it.
 
 ### G2. Do not destroy data or existing artifacts
 
@@ -667,6 +738,16 @@ uv run python scripts/audit_data.py
 # structural-only run; B.3/B.4 are marked skipped
 uv run python scripts/audit_data.py --skip-hashes
 
+# E1.1 front-end ablation: export -> train -> evaluate -> summarize
+make e1-1
+# individual stages
+make e1-1-export      # ~637k PNGs into data/derived/e1_1_frontend/ (~16 GB)
+make e1-1-train       # six probes into Models/Iteration1/e_1_1/
+make e1-1-evaluate    # harness output into reports/phase1/e1_1_frontend/runs/
+make e1-1-summarize   # regenerates summary.csv, per_attack_eer.csv, RESULTS.md
+# scope to one condition (command-line assignment overrides the makefile default)
+make E1_1_FRONTENDS=mel128 e1-1
+
 # Smoke-test the harness on a deterministic 100-clip-per-split subset
 uv run python -m spoof_detection.evaluate \
   --checkpoint Models/Iteration1/best_audio_spoof_model_unweighted.pth \
@@ -687,12 +768,12 @@ is complete.
 
 ## 8. Known gaps and open questions
 
-1. **Training provenance is incomplete.** `2_model.ipynb` confirms the
-   architecture, `BCEWithLogitsLoss`, Adam `lr=1e-3`, batch size 32, 20-epoch
-   maximum, early stopping on dev, weighted `pos_weight`, no augmentation, and no
-   recorded seed. However, the unweighted training cell/output is missing, and
-   the weighted batch-norm counter (6,930 steps ≈ 22 epochs) exceeds the visible
-   20-epoch loop. Exact schedules are not reproducible; see section 4.3.
+1. **Training provenance is incomplete.** `notebooks/model/2_model.ipynb`
+   confirms the architecture, `BCEWithLogitsLoss`, Adam `lr=1e-3`, batch size 32,
+   20-epoch maximum, early stopping on dev, weighted `pos_weight`, no augmentation,
+   and no recorded seed. However, the unweighted training cell/output is missing,
+   and the weighted batch-norm counter (6,930 steps ≈ 22 epochs) exceeds the
+   visible 20-epoch loop. Exact schedules are not reproducible; see section 4.3.
 2. **Regenerated images, not original PNGs.** E0.1 rebuilt the subset at
    `data/derived/train_seed42/` and verified 10,080/10,080 pixel parity against
    the full-split export. Parity with the lost original PNGs cannot be proven.
@@ -725,9 +806,20 @@ is complete.
     protocol, sampling, preprocessing, dataset-validation, model-loading,
     metrics, evaluation, baseline-audit, and data-audit modules with unit tests.
     E0.4 added preprocessing and app-contract tests; E0.5 added `audit.py` and
-    `tests/test_audit.py`, so `make test` runs 138 tests. `README.md` documents
-    setup, data acquisition, evaluation, and the audit. There is still no CI
-    pipeline.
+    `tests/test_audit.py`; E1.1 added `frontends.py`, `frontend_export.py`,
+    `train_probe.py` and their tests. `README.md` documents setup, data
+    acquisition, evaluation, and the audit. There is still no CI pipeline.
+12. **E1.1 is single-seed and outside the data audit.** Every condition in
+    section 4.11 is one training run, and no confidence intervals or significance
+    tests exist, so the 1–3 point EER gaps are suggestive rather than decisive. A
+    multi-seed replication of `mel128`, `mel256`, `linear_stft` and `randproj128`
+    is the cheapest open follow-up. `make audit-data` also does not yet hash
+    `data/derived/e1_1_frontend/`.
+13. **E1.1 could not test the rendering or shortcut hypotheses.** All six
+    front-ends share one colormap, normalisation and flip, so an
+    image-statistics shortcut would be invisible to the design. That question
+    remains with E1.2 (colormap/orientation) and E1.4 (silence/noise/duration
+    controls).
 
 ---
 
@@ -737,6 +829,7 @@ For any new task:
 
 1. Read this file and the relevant section of `ROADMAP.md`.
 2. Check `git status` before touching files; the working tree contains user work.
+   Do not read `notes/` or `Bibliography/` (G1) — they are user-only.
 3. If the task involves training data, use `manifests/train_seed42.csv` and the
    images in `data/derived/train_seed42/`; do not re-derive the seed-42 subset or
    substitute the full 25,380-image export. Verify the raw dataset with
@@ -770,3 +863,10 @@ For any new task:
   data and leakage audit report.
 - [`reports/phase0/E0.5/README.md`](./reports/phase0/E0.5/README.md): E0.5
   experiment log, notebook lineage evidence, and limitations.
+- [`reports/phase1/e1_1_frontend/README.md`](./reports/phase1/e1_1_frontend/README.md):
+  E1.1 front-end ablation: verdicts, per-attack findings, threats to validity.
+- [`reports/phase1/e1_1_frontend/PREREGISTRATION.md`](./reports/phase1/e1_1_frontend/PREREGISTRATION.md):
+  E1.1 question, conditions, metric contract and decision rules fixed before the
+  run.
+- [`Models/Iteration1/e_1_1/MODELS.md`](./Models/Iteration1/e_1_1/MODELS.md): E1.1
+  probe checkpoints, training outcome and evaluation table.

@@ -1,0 +1,824 @@
+{
+  "experiment": "E1.1",
+  "title": "Is the mel spectrogram necessary?",
+  "generated_at_utc": "2026-11-19T17:29:27+00:00",
+  "command": "'/home/toastu/Research/Spoof Detection/.venv/bin/python' scripts/export_e1_1_frontends.py --frontends mel64 mel128 mel256 linear_stft mfcc40 randproj128 --output-root data/derived/e1_1_frontend --manifest-root manifests/e1_1_frontend",
+  "git": {
+    "commit": "9881dbf6a5cafe8fe566f035d32b86b00a8cba21",
+    "dirty": false
+  },
+  "environment": {
+    "python": "3.14.8",
+    "platform": "Linux-7.2.9-201.fc44.x86_64-x86_64-with-glibc2.43",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "librosa": "1.0.0",
+    "matplotlib": "3.11.2"
+  },
+  "sources": {
+    "train_manifest": "manifests/train_seed42.csv",
+    "train_manifest_sha256": "22f98abdf3392e04f7df3632809f81d033d5687773946cd103f5066846ed195e",
+    "data_root": "data/LA"
+  },
+  "output_root": "data/derived/e1_1_frontend",
+  "manifest_root": "manifests/e1_1_frontend",
+  "limit": null,
+  "frontends": {
+    "mel64": {
+      "spec": {
+        "version": "mel64-magma-4s-v1",
+        "frontend": "mel64",
+        "description": "64-band mel spectrogram, dB, magma, flipped",
+        "params": {
+          "n_mels": 64,
+          "n_fft": 2048,
+          "hop_length": 512,
+          "power_to_db_ref": "np.max"
+        },
+        "sample_rate": 16000,
+        "target_seconds": 4,
+        "target_length": 64000,
+        "colormap": "magma",
+        "render": "plt.imsave(cmap='magma', origin='lower')",
+        "resize": [
+          224,
+          224
+        ],
+        "imagenet_mean": [
+          0.485,
+          0.456,
+          0.406
+        ],
+        "imagenet_std": [
+          0.229,
+          0.224,
+          0.225
+        ]
+      },
+      "splits": {
+        "train": {
+          "counts": {
+            "total": 10080,
+            "bonafide": 2580,
+            "spoof": 7500
+          },
+          "images_dir": "data/derived/e1_1_frontend/mel64/train",
+          "metadata": "data/derived/e1_1_frontend/mel64/train/metadata_train_seed42.csv",
+          "metadata_sha256": "39a09f34f6bab8cde8c9e5175036b6f0c33fbf185963409a1543d82f253b9201",
+          "manifest": "manifests/e1_1_frontend/mel64_train.csv",
+          "manifest_sha256": "6a5c208b74ae87ef637701058e02c50e62fab809afc7dee8b0d644022a8329a8",
+          "sample_sha256": {
+            "0": "b930dc2ac9d5f08120cc831baaa6326c5c93465d9639cd64cf0e22dd5f6189e7",
+            "1": "295803beb03199ca0c16d772f573995a84bed451fd96fa415224a1caa77ad521",
+            "2": "07a049bb88672bb11c7eae385565ee8644a366475d15b349ecd74fd67fa467a7",
+            "3": "4c87812af92ca05e48536430a6116208a0bafdac37ab43915bfc02696476090f",
+            "4": "433c98187a5290afcae1d197d93d7d633c005b8e2c445358ab6650d76fe67265"
+          },
+          "mel128_parity": {
+            "skipped": true
+          },
+          "determinism": {
+            "checked": 1,
+            "matched": 1,
+            "details": [
+              {
+                "file_index": 0,
+                "identical": true
+              }
+            ]
+          }
+        },
+        "dev": {
+          "counts": {
+            "total": 24844,
+            "bonafide": 2548,
+            "spoof": 22296
+          },
+          "images_dir": "data/derived/e1_1_frontend/mel64/dev",
+          "metadata": "data/derived/e1_1_frontend/mel64/dev/metadata_dev.csv",
+          "metadata_sha256": "8c6653bfc6d979a52b3b9cad64ae1104e1a24d7f3118fba4f1bfaff546346993",
+          "manifest": "manifests/e1_1_frontend/mel64_dev.csv",
+          "manifest_sha256": "1459a954885a9955f957f7f080baa21ef66e12e1323fdafeb16a1c14113a72d8",
+          "sample_sha256": {
+            "0": "ddb93ec1aa199bae20280456055600cbbbe54a188d8bb0bbce95b2e1bc2f1554",
+            "1": "7d5b4f7374e8aa6ad9a30e2fc95975d934cbbb1510f7e31881c0b6720e832f89",
+            "2": "d8d462281edb498dbabe38ac5a7376c43427b5f41736dacf3981e4415f2e50e9",
+            "3": "f5b46b70a58ef5e4bef2bc76b0cdf6fae7fecf2e75b962c33d41a8102f7c39f6",
+            "4": "1d2c3c2df6a9af3141ca22abe9e39677f346ebecd33c18c9569634d3bea1de4c"
+          },
+          "mel128_parity": {
+            "skipped": true
+          },
+          "determinism": {
+            "checked": 1,
+            "matched": 1,
+            "details": [
+              {
+                "file_index": 0,
+                "identical": true
+              }
+            ]
+          }
+        },
+        "eval": {
+          "counts": {
+            "total": 71237,
+            "bonafide": 7355,
+            "spoof": 63882
+          },
+          "images_dir": "data/derived/e1_1_frontend/mel64/eval",
+          "metadata": "data/derived/e1_1_frontend/mel64/eval/metadata_eval.csv",
+          "metadata_sha256": "a54839d28edbd47d4b121e166ac117a4c99d6c971d2513aa7513c45837723f6a",
+          "manifest": "manifests/e1_1_frontend/mel64_eval.csv",
+          "manifest_sha256": "89aac3d6ed591485e7400832fab76e501c294eaa37f76fd033a3bdcf8df6ea0e",
+          "sample_sha256": {
+            "0": "d060021d07332a7a0eba9d475b3b70ec1612bdbe6ef1d88612294287b2528563",
+            "1": "22e889c89bd69770b00dd8166e3e025af185823869fecd36a331fac901f6100f",
+            "2": "6d4fd9ad303d22c237ec229c87a0f32c95535c62e8e412b59969eea7cad68840",
+            "3": "3235e50ad778bf3fb10d59b3f8aed73508779db4cbf66580185a4a4f9682ce10",
+            "4": "ee12e6da508e7d71953503588ed6287c41cefaaf46a9de120655be07158917c3"
+          },
+          "mel128_parity": {
+            "skipped": true
+          },
+          "determinism": {
+            "checked": 1,
+            "matched": 1,
+            "details": [
+              {
+                "file_index": 0,
+                "identical": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mel128": {
+      "spec": {
+        "version": "mel128-magma-4s-v1",
+        "frontend": "mel128",
+        "description": "Existing 128-band mel contract (control)",
+        "params": {
+          "n_mels": 128,
+          "n_fft": 2048,
+          "hop_length": 512,
+          "power_to_db_ref": "np.max"
+        },
+        "sample_rate": 16000,
+        "target_seconds": 4,
+        "target_length": 64000,
+        "colormap": "magma",
+        "render": "plt.imsave(cmap='magma', origin='lower')",
+        "resize": [
+          224,
+          224
+        ],
+        "imagenet_mean": [
+          0.485,
+          0.456,
+          0.406
+        ],
+        "imagenet_std": [
+          0.229,
+          0.224,
+          0.225
+        ]
+      },
+      "splits": {
+        "train": {
+          "counts": {
+            "total": 10080,
+            "bonafide": 2580,
+            "spoof": 7500
+          },
+          "images_dir": "data/derived/e1_1_frontend/mel128/train",
+          "metadata": "data/derived/e1_1_frontend/mel128/train/metadata_train_seed42.csv",
+          "metadata_sha256": "534c07a95029c90d7296ee678142d52adfbe153d7665ef65290aa99ab9bf5802",
+          "manifest": "manifests/e1_1_frontend/mel128_train.csv",
+          "manifest_sha256": "e4744bc252ff3db5d492891e2f4af3d9c4b3b6c8ce89b8f5f3b9972400c78c33",
+          "sample_sha256": {
+            "0": "4b7aa6435a090d9e5207582045e4f24a422893b00b4dcdbac2b478a5689b099b",
+            "1": "0aa9655a4403947d051646e089fc0bd44b70b03fb4b0e50c3c45ed3105d64a6a",
+            "2": "c2c339a868b91c9ce2ca2ba8673135fd62cf119416eee58a037b7351e8896506",
+            "3": "0314225c608e97174197dd1acc6b03c0b2882d981ba09c2a128fc42131058487",
+            "4": "c8476c753343b21abcb6ed2eb4bb17ac98232efe803a1a1341d22bc6b0b07c10"
+          },
+          "mel128_parity": {
+            "checked": 25,
+            "matched": 25,
+            "mismatched": 0,
+            "missing_reference": 0,
+            "mismatch_examples": [],
+            "reference_root": "data/dataset_img/train"
+          },
+          "determinism": {
+            "checked": 1,
+            "matched": 1,
+            "details": [
+              {
+                "file_index": 0,
+                "identical": true
+              }
+            ]
+          }
+        },
+        "dev": {
+          "counts": {
+            "total": 24844,
+            "bonafide": 2548,
+            "spoof": 22296
+          },
+          "images_dir": "data/derived/e1_1_frontend/mel128/dev",
+          "metadata": "data/derived/e1_1_frontend/mel128/dev/metadata_dev.csv",
+          "metadata_sha256": "a2341692cb5dc018bab3dea4c659e1158b4885c9e9e85b0c1abf92f16608155d",
+          "manifest": "manifests/e1_1_frontend/mel128_dev.csv",
+          "manifest_sha256": "6a63afdb26281454e61fa9a7b3e26f85653b871886c03e90364c9793fc0edfcf",
+          "sample_sha256": {
+            "0": "8ce9069ec74270236b81af1b95c42de17500bf11781bf443c525d6d7c95aa02c",
+            "1": "fa2db8e025773384f3d6fd6cdc04c3878819aec83880f14841fc81a7b718b185",
+            "2": "d190dda7cb97246e3af9a8c7c1959eb4db6b31364814a96f5ec7577f549450d8",
+            "3": "689ff2ab20c3a58072df6a78c72e9fff1bb2634369e67439278e0ebb49cb796f",
+            "4": "91e8f80881e171d7f4881eb99dc9f92a08e75e1cb416da5ed45eef449c43b50e"
+          },
+          "mel128_parity": {
+            "checked": 25,
+            "matched": 25,
+            "mismatched": 0,
+            "missing_reference": 0,
+            "mismatch_examples": [],
+            "reference_root": "data/dataset_img/dev"
+          },
+          "determinism": {
+            "checked": 1,
+            "matched": 1,
+            "details": [
+              {
+                "file_index": 0,
+                "identical": true
+              }
+            ]
+          }
+        },
+        "eval": {
+          "counts": {
+            "total": 71237,
+            "bonafide": 7355,
+            "spoof": 63882
+          },
+          "images_dir": "data/derived/e1_1_frontend/mel128/eval",
+          "metadata": "data/derived/e1_1_frontend/mel128/eval/metadata_eval.csv",
+          "metadata_sha256": "783b10b2b3e673cb4bf9b3a2b7ffcbccaf0bfb266df6eb0476a93c47b7a0b285",
+          "manifest": "manifests/e1_1_frontend/mel128_eval.csv",
+          "manifest_sha256": "c2cf6f46299d87096e19f933cd1a762ddfbfabb6b81addb774a8de7ea85c070f",
+          "sample_sha256": {
+            "0": "e0184274560f152adddc949081c627ae959bbdcebeff18910efe3ca4ed736952",
+            "1": "49990b0fdf2989d2d393facd8bc1cb029be321dadaaf47eb68734a36107e69bf",
+            "2": "8677b3ba0bf73b48b7744e245f7523461b92d2421eb454b545506d125c21503e",
+            "3": "07ce4bbef4ca7aa6c4de3abe2681a7180842d04ef472711499c81f6663d16061",
+            "4": "b218d540e658613147ad4e0009f9295d19d92d6c8c8cc73ad04231050501ee51"
+          },
+          "mel128_parity": {
+            "checked": 25,
+            "matched": 25,
+            "mismatched": 0,
+            "missing_reference": 0,
+            "mismatch_examples": [],
+            "reference_root": "data/dataset_img/eval"
+          },
+          "determinism": {
+            "checked": 1,
+            "matched": 1,
+            "details": [
+              {
+                "file_index": 0,
+                "identical": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mel256": {
+      "spec": {
+        "version": "mel256-magma-4s-v1",
+        "frontend": "mel256",
+        "description": "256-band mel spectrogram, dB, magma, flipped",
+        "params": {
+          "n_mels": 256,
+          "n_fft": 2048,
+          "hop_length": 512,
+          "power_to_db_ref": "np.max"
+        },
+        "sample_rate": 16000,
+        "target_seconds": 4,
+        "target_length": 64000,
+        "colormap": "magma",
+        "render": "plt.imsave(cmap='magma', origin='lower')",
+        "resize": [
+          224,
+          224
+        ],
+        "imagenet_mean": [
+          0.485,
+          0.456,
+          0.406
+        ],
+        "imagenet_std": [
+          0.229,
+          0.224,
+          0.225
+        ]
+      },
+      "splits": {
+        "train": {
+          "counts": {
+            "total": 10080,
+            "bonafide": 2580,
+            "spoof": 7500
+          },
+          "images_dir": "data/derived/e1_1_frontend/mel256/train",
+          "metadata": "data/derived/e1_1_frontend/mel256/train/metadata_train_seed42.csv",
+          "metadata_sha256": "d32261709ecc782f1bf6c7587d92ee7da3515f3ddf9d75fa47bc5a2f43d9af20",
+          "manifest": "manifests/e1_1_frontend/mel256_train.csv",
+          "manifest_sha256": "2d61000bcbc427eba733ea4d657c7aa2478610971551e6b36782ea3295182007",
+          "sample_sha256": {
+            "0": "74ab8d71b8b1a90fa994ca76a029ac15211e2161c4254c86a05370def2de9c41",
+            "1": "113d9ebc03b1786d254f216b5b1df9478c85f6cee5591d25572e1742d8547e37",
+            "2": "991169e5f51f5e9592e48f3af05dec7045fec95778738632780d52ac412e7b57",
+            "3": "73f53cdfae5887d8f06ccd72f7f3e096779d041771ffb73e7adee7c3b51ada75",
+            "4": "4c47900f66e2942b9c3576c59b22368028649310e9c48b2274d338b9fb2a4acb"
+          },
+          "mel128_parity": {
+            "skipped": true
+          },
+          "determinism": {
+            "checked": 1,
+            "matched": 1,
+            "details": [
+              {
+                "file_index": 0,
+                "identical": true
+              }
+            ]
+          }
+        },
+        "dev": {
+          "counts": {
+            "total": 24844,
+            "bonafide": 2548,
+            "spoof": 22296
+          },
+          "images_dir": "data/derived/e1_1_frontend/mel256/dev",
+          "metadata": "data/derived/e1_1_frontend/mel256/dev/metadata_dev.csv",
+          "metadata_sha256": "7d3cc9c722634f515e6a57875eefc6370ac47ccd5cbbe0824879594ed7f45bbe",
+          "manifest": "manifests/e1_1_frontend/mel256_dev.csv",
+          "manifest_sha256": "209a7d573ed3c686248a31ac28ce2c7fea533b8f995569c42c3b95351f5a7da7",
+          "sample_sha256": {
+            "0": "056ef70dc0114ac9d1fd15eea4afb0b06211dd1a274fc98d43eab723bbc17650",
+            "1": "70b4cad9f76261a1c7aadacdf2e060b3980cb819a21df87baded98ce10e42d10",
+            "2": "d9716606084b74f0d2c999fcd83e503939a72a5f2d944a30e020acf5ab8f8f47",
+            "3": "b438b935670947bce2f1b7af0c56e6a364412a39c6666a386e6aeac0c7db93cf",
+            "4": "960a65c22584f1736a1c82fdaf0af78cb9b71e40c63bec4ddbf852c41a44542a"
+          },
+          "mel128_parity": {
+            "skipped": true
+          },
+          "determinism": {
+            "checked": 1,
+            "matched": 1,
+            "details": [
+              {
+                "file_index": 0,
+                "identical": true
+              }
+            ]
+          }
+        },
+        "eval": {
+          "counts": {
+            "total": 71237,
+            "bonafide": 7355,
+            "spoof": 63882
+          },
+          "images_dir": "data/derived/e1_1_frontend/mel256/eval",
+          "metadata": "data/derived/e1_1_frontend/mel256/eval/metadata_eval.csv",
+          "metadata_sha256": "d8d32b8ccb6e79ad90c4317324b1dccebfc36fb72146f14020d30b284891baef",
+          "manifest": "manifests/e1_1_frontend/mel256_eval.csv",
+          "manifest_sha256": "6cf3f631a5b14a8594f93207dca9a0ca9eeb8312899c4b69a72d5b51a420d43d",
+          "sample_sha256": {
+            "0": "6b62bf1409cc4eb057dcae604875579ac45b1358033e91d7018abee119fe9ba2",
+            "1": "c98761c17e913c9a078f4a0009bed7ddfc78b0fe2b1bee6ba89c00b3c48bf2c3",
+            "2": "c82d82b3ffe226504c62288f0d6aa6c8194110e074f58c32ed78053a2dfcc61c",
+            "3": "42b538fb1e9c4ce3e5efb6046120affc67bb0979594936010f83f5861dc612cc",
+            "4": "50b43f2924c0b121aea4cd6ac0c229a55f28f6c151fe9a81f48e72a11cacf2f4"
+          },
+          "mel128_parity": {
+            "skipped": true
+          },
+          "determinism": {
+            "checked": 1,
+            "matched": 1,
+            "details": [
+              {
+                "file_index": 0,
+                "identical": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    "linear_stft": {
+      "spec": {
+        "version": "linear1025-magma-4s-v1",
+        "frontend": "linear_stft",
+        "description": "Linear-frequency power STFT in dB, magma, flipped",
+        "params": {
+          "n_fft": 2048,
+          "hop_length": 512,
+          "frequency_bins": 1025,
+          "power_to_db_ref": "np.max"
+        },
+        "sample_rate": 16000,
+        "target_seconds": 4,
+        "target_length": 64000,
+        "colormap": "magma",
+        "render": "plt.imsave(cmap='magma', origin='lower')",
+        "resize": [
+          224,
+          224
+        ],
+        "imagenet_mean": [
+          0.485,
+          0.456,
+          0.406
+        ],
+        "imagenet_std": [
+          0.229,
+          0.224,
+          0.225
+        ]
+      },
+      "splits": {
+        "train": {
+          "counts": {
+            "total": 10080,
+            "bonafide": 2580,
+            "spoof": 7500
+          },
+          "images_dir": "data/derived/e1_1_frontend/linear_stft/train",
+          "metadata": "data/derived/e1_1_frontend/linear_stft/train/metadata_train_seed42.csv",
+          "metadata_sha256": "b9b92084f4b307998b71a644072bee4dccf2d74515b63569a72bb506e2530489",
+          "manifest": "manifests/e1_1_frontend/linear_stft_train.csv",
+          "manifest_sha256": "db95f96d53de4e5c1fd56b4f438ed39c9a052be357f987cd0233090b626c9102",
+          "sample_sha256": {
+            "0": "e8c369c06f0322caffaf9f9e773c4e0df2005a0fca25286be86d4529997b666a",
+            "1": "889db697c299ba503560491395e3ce119edca04ee8309286cb29dac636b2e447",
+            "2": "0ce369137e1320e5e5f08ca393cc79af48dce2d6dbcf2ca3b181e9203d43d52e",
+            "3": "0aca13ec13c1978ab2572800ceee206be63aab74ebd5e0330b70e9f968a17f3e",
+            "4": "949944f4b7b1925287404f43cce6112de399c3c91663df64563ab4eb5ae58164"
+          },
+          "mel128_parity": {
+            "skipped": true
+          },
+          "determinism": {
+            "checked": 1,
+            "matched": 1,
+            "details": [
+              {
+                "file_index": 0,
+                "identical": true
+              }
+            ]
+          }
+        },
+        "dev": {
+          "counts": {
+            "total": 24844,
+            "bonafide": 2548,
+            "spoof": 22296
+          },
+          "images_dir": "data/derived/e1_1_frontend/linear_stft/dev",
+          "metadata": "data/derived/e1_1_frontend/linear_stft/dev/metadata_dev.csv",
+          "metadata_sha256": "befc93505cc82ef4c0eb74b4721006254a81271a68036dbf27fe390ee7c3131e",
+          "manifest": "manifests/e1_1_frontend/linear_stft_dev.csv",
+          "manifest_sha256": "baab93a0d944d08ad334f6ebf27814f64ea6f8d41cea2ae1b525ab2cdcd8aa4d",
+          "sample_sha256": {
+            "0": "b6b3435be3d53935b1aac9bed8a3fb345071c7041877075301cfb75b89fa6c26",
+            "1": "5711f9c87127afefc9066a9cfcfd1bc5a4760373d82f5cef15a527f2dd276baf",
+            "2": "47ffef3cd168a945beea240eeac95b9145ca30a461a9241f97b3e286d63b3a46",
+            "3": "00daa72ce84d9503c9b7ff9d4346582d990770e439a24614a253f52791d5e3d4",
+            "4": "722320104462af93e9ee9efd407f49f212ef41198d97295479adb7fbf33b55ff"
+          },
+          "mel128_parity": {
+            "skipped": true
+          },
+          "determinism": {
+            "checked": 1,
+            "matched": 1,
+            "details": [
+              {
+                "file_index": 0,
+                "identical": true
+              }
+            ]
+          }
+        },
+        "eval": {
+          "counts": {
+            "total": 71237,
+            "bonafide": 7355,
+            "spoof": 63882
+          },
+          "images_dir": "data/derived/e1_1_frontend/linear_stft/eval",
+          "metadata": "data/derived/e1_1_frontend/linear_stft/eval/metadata_eval.csv",
+          "metadata_sha256": "ef87efdd3bc428c16730c858b84fa907ba6cc2799175d1f8bc706f51092085d1",
+          "manifest": "manifests/e1_1_frontend/linear_stft_eval.csv",
+          "manifest_sha256": "1e6c26ef39c3bfb54d37d0777bef79fe045fe89b379d2464c529297ca5ec2c18",
+          "sample_sha256": {
+            "0": "d8fee6f8cc603b2077f8e4ad9e74f025448be12f4584e91437ff390f563294ec",
+            "1": "dcaf95e4b74f2318df856d8a39f5ddf7988353a7b31adc24f4fff15a7a8f9ada",
+            "2": "126a6854a6018453e21479d79163bb43199aee5047691841d6a53aacb0a6b943",
+            "3": "ac8065e6110434ef63c535dcb2af2dc79b690bb03a5259708957d0756e3a70ef",
+            "4": "afea1d7a61a8f9457c86dbbd25940834a8dcd8d94ab85ce38af76728dad667db"
+          },
+          "mel128_parity": {
+            "skipped": true
+          },
+          "determinism": {
+            "checked": 1,
+            "matched": 1,
+            "details": [
+              {
+                "file_index": 0,
+                "identical": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    "mfcc40": {
+      "spec": {
+        "version": "mfcc40-magma-4s-v1",
+        "frontend": "mfcc40",
+        "description": "40 MFCC coefficients (no deltas), magma, flipped",
+        "params": {
+          "n_mfcc": 40,
+          "n_fft": 2048,
+          "hop_length": 512
+        },
+        "sample_rate": 16000,
+        "target_seconds": 4,
+        "target_length": 64000,
+        "colormap": "magma",
+        "render": "plt.imsave(cmap='magma', origin='lower')",
+        "resize": [
+          224,
+          224
+        ],
+        "imagenet_mean": [
+          0.485,
+          0.456,
+          0.406
+        ],
+        "imagenet_std": [
+          0.229,
+          0.224,
+          0.225
+        ]
+      },
+      "splits": {
+        "train": {
+          "counts": {
+            "total": 10080,
+            "bonafide": 2580,
+            "spoof": 7500
+          },
+          "images_dir": "data/derived/e1_1_frontend/mfcc40/train",
+          "metadata": "data/derived/e1_1_frontend/mfcc40/train/metadata_train_seed42.csv",
+          "metadata_sha256": "e9eab2e8c255b9256bd5836a573c841f7455e66dcc2522f08deef7a36a75752e",
+          "manifest": "manifests/e1_1_frontend/mfcc40_train.csv",
+          "manifest_sha256": "b3634381d93b9d975535b540a7f568147f7127d51c5f97a29d74f5229322e88a",
+          "sample_sha256": {
+            "0": "23eea4752030da6db4e7137ad673b4ea1351b12a7f4d3bc049e87fbe4e91cb67",
+            "1": "e6f708400f717eeeada3cce89090bf2abc8f274c09350e090db15122913c3e8b",
+            "2": "f83097044bf342b8dba8413fd6fffcfedd58378ea7bc7d3cac17b72ef3cdf9c8",
+            "3": "7b0c500e6af8730bab2fea97f3a77ba06e2f50887928cc5f8e22dcbfbbdcccf0",
+            "4": "836784d86a4227e23daf0f562ceef5bec9ca08bb06c4816a4220c974d685b47e"
+          },
+          "mel128_parity": {
+            "skipped": true
+          },
+          "determinism": {
+            "checked": 1,
+            "matched": 1,
+            "details": [
+              {
+                "file_index": 0,
+                "identical": true
+              }
+            ]
+          }
+        },
+        "dev": {
+          "counts": {
+            "total": 24844,
+            "bonafide": 2548,
+            "spoof": 22296
+          },
+          "images_dir": "data/derived/e1_1_frontend/mfcc40/dev",
+          "metadata": "data/derived/e1_1_frontend/mfcc40/dev/metadata_dev.csv",
+          "metadata_sha256": "53e90312369fb7a9db34a643213fb13634e2c8f9894519715085c0e8489e730a",
+          "manifest": "manifests/e1_1_frontend/mfcc40_dev.csv",
+          "manifest_sha256": "afe362cff2ba9acc41fb10e9cdedab2b3b8d41e3ea5b959329bb57cba4ce30cc",
+          "sample_sha256": {
+            "0": "e919d1e2bab87e71682b1e15d1ae166e93f77e6710fee935c31bfab04ec20acc",
+            "1": "262cd3e8e909e198159a0ff8a1ebc3efdd59276650b36fbe37e2465c33448a8c",
+            "2": "2cbb67be8ddcaf832be5a26ab6f50ec5655560370a933f18c95f7ebe7d1101c6",
+            "3": "c4d26a3290f9cd336b98c67887ed2fcaaf866efcbfd68a6642a841d91bb2b558",
+            "4": "7b3cb1386447ebe315bad227fde357b6b157b942a82918f50d3b833fe9a63e23"
+          },
+          "mel128_parity": {
+            "skipped": true
+          },
+          "determinism": {
+            "checked": 1,
+            "matched": 1,
+            "details": [
+              {
+                "file_index": 0,
+                "identical": true
+              }
+            ]
+          }
+        },
+        "eval": {
+          "counts": {
+            "total": 71237,
+            "bonafide": 7355,
+            "spoof": 63882
+          },
+          "images_dir": "data/derived/e1_1_frontend/mfcc40/eval",
+          "metadata": "data/derived/e1_1_frontend/mfcc40/eval/metadata_eval.csv",
+          "metadata_sha256": "1c2c80fb65fda60a3b874f0b356dca48cdcaf373e00452f26e5b37b1f6e89516",
+          "manifest": "manifests/e1_1_frontend/mfcc40_eval.csv",
+          "manifest_sha256": "b5901c4c27e48da3b5728435de4c12c916626979d62687d9d056334a3243c77c",
+          "sample_sha256": {
+            "0": "06b081645545d29ae16fb59adbc0eda2a9f513615aa42165c455559b6b0e76ca",
+            "1": "3f2bde9f8e5a18f51514275d2518a3d49941d4aa73b855f66c425eeaa834837e",
+            "2": "0931309bbb146f4a13adccf38ace0ecfdc206cb2e277c622bf82d0d8b24a9c88",
+            "3": "23507e737e75e3f2143c6c1173a0aadc58edd37aa9073a518833c729b2cab9d0",
+            "4": "be7398fae7bdbefb4af866160f794acff34aa92ded3aa79775c11538fecdb659"
+          },
+          "mel128_parity": {
+            "skipped": true
+          },
+          "determinism": {
+            "checked": 1,
+            "matched": 1,
+            "details": [
+              {
+                "file_index": 0,
+                "identical": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    "randproj128": {
+      "spec": {
+        "version": "randproj128-magma-4s-v1",
+        "frontend": "randproj128",
+        "description": "128-row fixed Gaussian projection of the linear dB STFT (control)",
+        "params": {
+          "rows": 128,
+          "cols": 1025,
+          "seed": 42,
+          "source": "linear_stft_db"
+        },
+        "sample_rate": 16000,
+        "target_seconds": 4,
+        "target_length": 64000,
+        "colormap": "magma",
+        "render": "plt.imsave(cmap='magma', origin='lower')",
+        "resize": [
+          224,
+          224
+        ],
+        "imagenet_mean": [
+          0.485,
+          0.456,
+          0.406
+        ],
+        "imagenet_std": [
+          0.229,
+          0.224,
+          0.225
+        ],
+        "random_projection_sha256": "69b4bb55c13a0f9fe39c25da9f8c2e11c1bef653015f6df2308d60ac514e1e05"
+      },
+      "splits": {
+        "train": {
+          "counts": {
+            "total": 10080,
+            "bonafide": 2580,
+            "spoof": 7500
+          },
+          "images_dir": "data/derived/e1_1_frontend/randproj128/train",
+          "metadata": "data/derived/e1_1_frontend/randproj128/train/metadata_train_seed42.csv",
+          "metadata_sha256": "26154dd3ff7989d241e97e8beafa00d0ac8d3d4b5a4f80c87db2104fa10111fd",
+          "manifest": "manifests/e1_1_frontend/randproj128_train.csv",
+          "manifest_sha256": "ada6ecffd7e72682e81a51ab9fdb5a7743bed9bce88af14a51c9c773d6950f9d",
+          "sample_sha256": {
+            "0": "8b87d26d837a90327e47bcebf36a08a7f96a4408b0f13ea54addf54ba8e13c3b",
+            "1": "39d7f8001f2650aebbe64f6a44e9bbccb6ff8fe9a64ebf39e275868d84d35d31",
+            "2": "55580e432b8131529962ed9e27bf9017045a09b2eb2ae9ad3a17158a84fa0a3b",
+            "3": "2d33d9b24e388551ea5face1a5b2a4fec8f2fc21740d9308fa51ce0c6b2ee1a8",
+            "4": "2421579da074eadcb67675a6aa74a702dca425aa0188ccfa9c74b6faa4d337fa"
+          },
+          "mel128_parity": {
+            "skipped": true
+          },
+          "determinism": {
+            "checked": 1,
+            "matched": 1,
+            "details": [
+              {
+                "file_index": 0,
+                "identical": true
+              }
+            ]
+          }
+        },
+        "dev": {
+          "counts": {
+            "total": 24844,
+            "bonafide": 2548,
+            "spoof": 22296
+          },
+          "images_dir": "data/derived/e1_1_frontend/randproj128/dev",
+          "metadata": "data/derived/e1_1_frontend/randproj128/dev/metadata_dev.csv",
+          "metadata_sha256": "8852cf2c510e68b76ee83e5aa6098f95236a330e5d0a7c4784cda610cecc5fd3",
+          "manifest": "manifests/e1_1_frontend/randproj128_dev.csv",
+          "manifest_sha256": "cfeb5c2da0b085080040f8a3fc903dc238a2202589f10fe2ec176f76ce904371",
+          "sample_sha256": {
+            "0": "016cb20183a880a1284e4db730e92f813037c3203c8ac6537f6647d3ffe047e1",
+            "1": "3b15cf9b197f55bb3c7043f98507602f736db390e8ecd838e5098001fc0fee33",
+            "2": "f8b1c585839d1efd9c2a8f8798fc1331ec4d6e8f26511e1fc391ddc715a3f2b7",
+            "3": "51b38fc9e3599f6cc3b2766c6394e82116c58016131be8dd5b258bc8c7acbb11",
+            "4": "841107127b9681f4786871dba414887260eca581bcba60600d7a7735f0c80ee9"
+          },
+          "mel128_parity": {
+            "skipped": true
+          },
+          "determinism": {
+            "checked": 1,
+            "matched": 1,
+            "details": [
+              {
+                "file_index": 0,
+                "identical": true
+              }
+            ]
+          }
+        },
+        "eval": {
+          "counts": {
+            "total": 71237,
+            "bonafide": 7355,
+            "spoof": 63882
+          },
+          "images_dir": "data/derived/e1_1_frontend/randproj128/eval",
+          "metadata": "data/derived/e1_1_frontend/randproj128/eval/metadata_eval.csv",
+          "metadata_sha256": "71aadfe9e8bfd5f5043ee07adf2d993ce7950194d8a864623baa6fa9c4a989de",
+          "manifest": "manifests/e1_1_frontend/randproj128_eval.csv",
+          "manifest_sha256": "b5ac12bd6b65c44b7081a8deb816c8bf400e9796c11d3fdcb0d735f78fc40906",
+          "sample_sha256": {
+            "0": "8604f4462b6f463610ff1e864c1ec9ee003cb124961ba6f722b8dcd569e41406",
+            "1": "b7f0ac92c2e8f7aa59687ef13ca9b3c122edc3e4e7d55fb6b785c64d8b41c9c6",
+            "2": "651a2136757a797a85f0b5f1abab9186c8d08b4a2ec630660d939800d12abc93",
+            "3": "8456f28c1487c186bc9a6cb58890798491db8c1d0e9780d852f99c10b5679086",
+            "4": "ce8bdda9a9958f9cb3397dddace4d3c075b91da46b3d3415a702d5acd33113b1"
+          },
+          "mel128_parity": {
+            "skipped": true
+          },
+          "determinism": {
+            "checked": 1,
+            "matched": 1,
+            "details": [
+              {
+                "file_index": 0,
+                "identical": true
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "elapsed_seconds": 19407.64
+}
