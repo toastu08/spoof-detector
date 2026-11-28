@@ -127,6 +127,16 @@ ASVspoof2019*.tar.gz
 # repository. Aggregate metrics, summaries and per-attack tables stay tracked.
 /reports/phase1/e1_2_rendering/runs/**/scores_*.csv
 
+# E1.4 per-condition render manifests (3 conditions x 3 splits of image paths
+# and SHA-256 values). Regenerate with `make e1-4-export`; the small provenance
+# and parity summary is committed at
+# reports/phase1/e1_4_shortcuts/export_manifest.json instead.
+/manifests/e1_4_shortcuts/
+
+# E1.4 per-clip score CSVs are regenerable. Aggregate metrics and per-attack
+# tables stay tracked.
+/reports/phase1/e1_4_shortcuts/runs/**/scores_*.csv
+
 # ---------------------------------------------------------------------------
 # Logs and temporary files
 # ---------------------------------------------------------------------------
