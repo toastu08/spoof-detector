@@ -1,11 +1,13 @@
 # E1.2 rendering-condition probes (Iteration 1, nested experiment)
 
-**Status:** recipe fixed; training and evaluation pending.
+**Status:** complete (2026-11-28). Report:
+[`reports/phase1/e1_2_rendering/README.md`](../../reports/phase1/e1_2_rendering/README.md).
 **Experiment:** E1.2 — colormap, orientation, dB scaling and PNG encoding
 ablation over the fixed `mel128` representation.
-**Date prepared:** 2026-11-24.
-**Git commit:** recorded in each run's `config.json`; fill the run table after
-training.
+**Date prepared:** 2026-11-24. **Date run:** 2026-11-26 (export) / 2026-11-28
+(evaluate).
+**Git commit:** `4fb53d685d23dc9f1040cf4744479bc4bbabd033` (working tree clean at
+export, dirty at training).
 **Training manifest:** `manifests/train_seed42.csv`
 (SHA-256 `22f98abdf3392e04f7df3632809f81d033d5687773946cd103f5066846ed195e`,
 10,080 rows: 2,580 bonafide / 7,500 spoof).
@@ -68,12 +70,28 @@ unexpected key lists are empty.
 
 ## Evaluation table
 
-Fill after `make e1-2-evaluate` and `make e1-2-summarize`. Every row must state
-split, attack subset, threshold and sample count.
+EER/AUC are threshold-free. Eval is the clean estimate (A07–A19); dev is the
+model-selection split (A01–A06). Full per-attack EER in
+`reports/phase1/e1_2_rendering/per_attack_eer.csv`.
 
 | Condition | Split | Attack subset | Threshold | Samples (bonafide/spoof) | EER | AUC |
 |---|---|---|---|---|---:|---:|
-| pending | pending | pending | pending | pending | pending | pending |
+| `magma_flip` | dev | A01–A06 | threshold-free | 24,844 (2,548/22,296) | 5.68% | 0.9876 |
+| `magma_flip` | eval | A07–A19 | threshold-free | 71,237 (7,355/63,882) | 11.41% | 0.9536 |
+| `viridis_flip` | dev | A01–A06 | threshold-free | 24,844 (2,548/22,296) | 5.81% | 0.9875 |
+| `viridis_flip` | eval | A07–A19 | threshold-free | 71,237 (7,355/63,882) | 12.94% | 0.9392 |
+| `gray_flip` | dev | A01–A06 | threshold-free | 24,844 (2,548/22,296) | 5.53% | 0.9874 |
+| `gray_flip` | eval | A07–A19 | threshold-free | 71,237 (7,355/63,882) | 12.44% | 0.9420 |
+| `rawdb_flip` | dev | A01–A06 | threshold-free | 24,844 (2,548/22,296) | 5.53% | 0.9870 |
+| `rawdb_flip` | eval | A07–A19 | threshold-free | 71,237 (7,355/63,882) | 12.44% | 0.9418 |
+| `magma_noflip` | dev | A01–A06 | threshold-free | 24,844 (2,548/22,296) | 6.01% | 0.9855 |
+| `magma_noflip` | eval | A07–A19 | threshold-free | 71,237 (7,355/63,882) | 11.92% | 0.9468 |
+| `viridis_noflip` | dev | A01–A06 | threshold-free | 24,844 (2,548/22,296) | 4.51% | 0.9911 |
+| `viridis_noflip` | eval | A07–A19 | threshold-free | 71,237 (7,355/63,882) | 11.26% | 0.9530 |
+| `gray_noflip` | dev | A01–A06 | threshold-free | 24,844 (2,548/22,296) | 5.10% | 0.9895 |
+| `gray_noflip` | eval | A07–A19 | threshold-free | 71,237 (7,355/63,882) | 11.35% | 0.9512 |
+| `magma_flip_rgb` | dev | A01–A06 | threshold-free | 24,844 (2,548/22,296) | 5.68% | 0.9876 |
+| `magma_flip_rgb` | eval | A07–A19 | threshold-free | 71,237 (7,355/63,882) | 11.41% | 0.9536 |
 
 ## Known limitations
 

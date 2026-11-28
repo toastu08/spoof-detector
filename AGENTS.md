@@ -6,10 +6,10 @@ Read this file before changing code, data, models, or experiment claims. For the
 prioritized research plan, read [`ROADMAP.md`](./ROADMAP.md). This file records
 what is true today; the roadmap records what we intend to test next.
 
-Last verified: 2026-11-23. Notebook MCP status re-verified 2026-11-13.
+Last verified: 2026-11-28. Notebook MCP status re-verified 2026-11-13.
 
-**Current status (2026-11-23):** E0.1, E0.2, E0.3, E0.4, and E0.5 complete, and
-E1.1 complete. The 10,080-clip training subset is reconstructed at
+**Current status (2026-11-28):** E0.1, E0.2, E0.3, E0.4, and E0.5 complete, and
+E1.1 and E1.2 complete. The 10,080-clip training subset is reconstructed at
 `data/derived/train_seed42/` with manifest `manifests/train_seed42.csv`. The
 evaluation harness scores full dev/eval from one command, both first-iteration
 checkpoints have a frozen, reproducibility-audited baseline under
@@ -18,7 +18,11 @@ pass via `make test`. The data and leakage audit (`reports/audit/data_audit.md`)
 finds no train/dev/eval leakage, so Phase 0 is complete. E1.1 compared six
 time-frequency front-ends on a frozen backbone and is reported in
 `reports/phase1/e1_1_frontend/README.md`; `mel128` remains the canonical
-preprocessing contract.
+preprocessing contract. E1.2 ablated colormap, orientation, dB scaling and PNG
+encoding over the fixed `mel128` representation and found them all largely
+irrelevant, with orientation a small colormap-dependent interaction
+(`reports/phase1/e1_2_rendering/README.md`); the canonical `mel128` + `magma` +
+`origin='lower'` contract stands (section 4.12).
 
 ---
 
@@ -58,8 +62,10 @@ was trained on.
    threshold-aware reporting, and freeze the two-checkpoint baseline table.
    **Complete (E0.2/E0.3).**
 3. Explain why the frozen ImageNet backbone works: spectral content, colormap
-   statistics, or dataset shortcuts. **Started (E1.1: the mel warping is not
-   required in-domain, but rendering and shortcut controls remain open; see 4.11).**
+   statistics, or dataset shortcuts. **Started (E1.1 + E1.2: mel warping is not
+   required in-domain; colormap, contrast normalisation and PNG encoding are
+   irrelevant, and orientation is a small colormap-dependent interaction — see
+   4.11 and 4.12). Silence/noise/duration shortcut controls remain open (E1.4).**
 4. Measure the capability envelope under channel, codec, language, speaker, and
    unseen-attack shift.
 
@@ -95,24 +101,26 @@ was trained on.
 | `Bibliography/` | Papers and sources for the user | **Gitignored; agents must not read** (see G1) |
 | `app.py` | FastAPI inference demo | Working; strict checkpoint load and shared preprocessing; see section 4.5 |
 | `templates/index.html` | Browser UI for the demo | Working |
-| `Models/Iteration1/` | First-iteration checkpoints, `MODELS.md`, and E1.1 probes under `e_1_1/` | Existing; renamed from the misspelled `Models/Itteration1/` on 2026-11-16 |
+| `Models/Iteration1/` | First-iteration checkpoints, `MODELS.md`, E1.1 probes under `e_1_1/`, and E1.2 probes under `e_1_2/` | Existing; renamed from the misspelled `Models/Itteration1/` on 2026-11-16 |
 | `best_audio_spoof_model_unweighted.pth` | Root checkpoint actually loaded by `app.py` | Existing; do not overwrite |
 | `data/LA/` | Extracted ASVspoof 2019 LA audio and protocols | Existing; do not overwrite |
 | `data/archive.zip` | Kaggle download zip of the extracted `data/LA` tree | Deleted 2026-11-07 after verification; hashes kept in `manifests/asvspoof2019_la.meta.json` |
 | `data/dataset_img/` | Exported spectrogram PNGs and metadata for train/dev/eval | Existing; do not overwrite |
 | `data/derived/train_seed42/` | Reconstructed 10,080-image first-iteration training set (E0.1) | New; 257 MB; gitignored |
 | `data/derived/e1_1_frontend/` | Six E1.1 front-end image sets, train/dev/eval (~637k PNGs, ~16 GB) | E1.1; gitignored |
-| `manifests/` | Data manifests and metadata | `train_seed42.csv` + `.meta.json`; `asvspoof2019_la.meta.json`; `e1_1_frontend/` (generated, 134 MB, gitignored) |
-| `reports/` | Experiment reports | `phase0/E0.1/` … `phase0/E0.5/`; `phase1/e1_1_frontend/`; `audit/` |
+| `data/derived/e1_2_rendering/` | Eight E1.2 rendering-condition image sets, train/dev/eval (~637k PNGs, ~22 GB) | E1.2; gitignored |
+| `manifests/` | Data manifests and metadata | `train_seed42.csv` + `.meta.json`; `asvspoof2019_la.meta.json`; `e1_1_frontend/`, `e1_2_rendering/` (generated, gitignored) |
+| `reports/` | Experiment reports | `phase0/E0.1/` … `phase0/E0.5/`; `phase1/e1_1_frontend/`, `phase1/e1_2_rendering/`; `audit/` |
 | `reports/audit/` | E0.5 data/leakage audit report | `data_audit.md` + `data_audit.json` (PASS) |
 | `reports/phase1/e1_1_frontend/` | E1.1 pre-registration, results, per-attack table, `export_manifest.json`, `README.md` | Complete; see 4.11 |
-| `scripts/` | Thin CLI entry points | `reproduce_train_seed42.py`, `verify_asvspoof2019_la.py`, `freeze_baseline.py`, `audit_data.py`, `export_e1_1_frontends.py`, `train_e1_1_probes.py`, `evaluate_e1_1.py`, `summarize_e1_1.py` |
+| `reports/phase1/e1_2_rendering/` | E1.2 pre-registration, results, per-attack table, `export_manifest.json`, `README.md` | Complete; see 4.12 |
+| `scripts/` | Thin CLI entry points | `reproduce_train_seed42.py`, `verify_asvspoof2019_la.py`, `freeze_baseline.py`, `audit_data.py`, `export_e1_1_frontends.py`, `train_e1_1_probes.py`, `evaluate_e1_1.py`, `summarize_e1_1.py`, `export_e1_2_rendering.py`, `train_e1_2_probes.py`, `evaluate_e1_2.py`, `summarize_e1_2.py` |
 | `tests/test1/` | Eight ElevenLabs clips plus `test1-results.csv` | Existing; do not overwrite |
-| `tests/` | Automated tests | E0.1 reconstruction, dataset validation, metrics, model loading, evaluation, baseline audit, data audit, preprocessing contract, app contract, E1.1 front-ends/probe training/pipeline |
-| `src/spoof_detection/` | Reusable package code | `protocol.py`, `sampling.py`, `preprocess.py`, `frontends.py`, `frontend_export.py`, `train_probe.py`, `dataset.py`, `model.py`, `metrics.py`, `evaluate.py`, `baseline.py`, `audit.py` |
+| `tests/` | Automated tests | E0.1 reconstruction, dataset validation, metrics, model loading, evaluation, baseline audit, data audit, preprocessing contract, app contract, E1.1 front-ends/probe training/pipeline, E1.2 rendering/export/summarize |
+| `src/spoof_detection/` | Reusable package code | `protocol.py`, `sampling.py`, `preprocess.py`, `frontends.py`, `frontend_export.py`, `rendering.py`, `rendering_export.py`, `train_probe.py`, `dataset.py`, `model.py`, `metrics.py`, `evaluate.py`, `baseline.py`, `audit.py` |
 | `reports/baseline/` | Frozen two-checkpoint `metrics.json`, per-clip scores, `summary.md`, and `freeze_report.json` | E0.3 two-checkpoint dev+eval baseline |
 | `pyproject.toml`, `uv.lock` | Project metadata and locked dependencies | Source of truth for dependencies |
-| `makefile` | `make app`, `make test`, `make verify-data`, `make audit-data`, `make evaluate`, `make evaluate-rerun`, `make freeze-baseline`, `make e1-1{,-export,-train,-evaluate,-summarize}` | Working |
+| `makefile` | `make app`, `make test`, `make verify-data`, `make audit-data`, `make evaluate`, `make evaluate-rerun`, `make freeze-baseline`, `make e1-1{,-export,-train,-evaluate,-summarize}`, `make e1-2{,-export,-train,-evaluate,-summarize}` | Working |
 | `README.md` | Setup, data acquisition, demo, and limitations | Written; keep commands in sync |
 
 ---
@@ -514,6 +522,58 @@ images are rendered from audited audio with the audited contract and `mel128` is
 pixel-identical to the audited export, but the ~637k new PNGs are not themselves
 hash-audited.
 
+### 4.12 Rendering ablation (E1.2, complete)
+
+`reports/phase1/e1_2_rendering/README.md` reports the E1.2 ablation. Eight
+rendering conditions over the **fixed 128-band mel representation**
+(`magma_flip`, `viridis_flip`, `gray_flip`, `rawdb_flip`, `magma_noflip`,
+`viridis_noflip`, `gray_noflip`, `magma_flip_rgb`) were rendered under
+`data/derived/e1_2_rendering/<condition>/{train,dev,eval}/`, and each got a fresh
+65,793-parameter head on the same frozen ResNet18. Recipe: seed 42, unweighted
+BCE, Adam 1e-3, batch 32, ≤20 epochs, patience 5 on full-dev loss, train-mode BN.
+Probes are in `Models/Iteration1/e_1_2/<condition>/seed42/`.
+
+Contract: dev A01–A06, 24,844 (2,548/22,296), used for early stopping; eval
+A07–A19, 71,237 (7,355/63,882), the clean estimate; EER/AUC threshold-free.
+Eval EER / AUC:
+
+| Condition | eval EER | eval AUC | ΔEER vs magma_flip |
+|---|---:|---:|---:|
+| viridis_noflip | 11.26% | 0.9530 | −0.15 |
+| gray_noflip | 11.35% | 0.9512 | −0.06 |
+| magma_flip (control) | 11.41% | 0.9536 | — |
+| magma_flip_rgb | 11.41% | 0.9536 | +0.00 |
+| magma_noflip | 11.92% | 0.9468 | +0.52 |
+| gray_flip | 12.44% | 0.9420 | +1.03 |
+| rawdb_flip | 12.44% | 0.9418 | +1.03 |
+| viridis_flip | 12.94% | 0.9392 | +1.54 |
+
+Key verified facts:
+
+- `magma_flip` is pixel-identical to `data/dataset_img` (25/25 sampled clips per
+  split) and reproduces the E1.1 `mel128` probe **exactly** (eval 11.41% / AUC
+  0.9536), so the pipeline is faithful and the 0.00 deltas below are real nulls.
+- **H4 (encoding) confirmed:** `magma_flip_rgb` differs from `magma_flip` by 0.00.
+- **H3 (contrast) not supported (null):** `rawdb_flip` (fixed `[-80, 0]` dB) is
+  identical to `gray_flip` (per-clip min-max), so the frozen backbone is
+  indifferent to per-clip contrast normalisation.
+- **H1 (colormap) not supported:** grayscale is competitive with both `magma` and
+  `viridis`; chroma buys nothing, and `viridis` (most saturated, smallest
+  luminance range) is the worst flipped condition.
+- **H2 (orientation) suggestive interaction, not a shortcut:** orientation moves
+  EER 0.5–1.7 points, but the sign is colormap-dependent — `magma` is better
+  flipped (the existing contract), `gray`/`viridis` better unflipped. No pair
+  reaches the pre-registered 5-point shortcut bar.
+- **No change to the canonical contract.** `magma_flip` (`mel128` + `magma` +
+  `origin='lower'`) is not beaten by more than 0.15 points on eval.
+- Every condition is a **single seed**, so the 0.5–1.7 point gaps are suggestive;
+  only the 0.00 nulls (encoding, contrast) are robust by construction.
+
+Not yet covered: `make audit-data` does not hash `data/derived/e1_2_rendering/`.
+The E1.2 images are rendered from audited audio with the audited contract and
+`magma_flip` is pixel-identical to the audited export, but the ~637k new PNGs are
+not themselves hash-audited.
+
 ---
 
 ## 5. Guardrails (hard rules)
@@ -809,17 +869,20 @@ is complete.
     `tests/test_audit.py`; E1.1 added `frontends.py`, `frontend_export.py`,
     `train_probe.py` and their tests. `README.md` documents setup, data
     acquisition, evaluation, and the audit. There is still no CI pipeline.
-12. **E1.1 is single-seed and outside the data audit.** Every condition in
-    section 4.11 is one training run, and no confidence intervals or significance
-    tests exist, so the 1–3 point EER gaps are suggestive rather than decisive. A
-    multi-seed replication of `mel128`, `mel256`, `linear_stft` and `randproj128`
-    is the cheapest open follow-up. `make audit-data` also does not yet hash
-    `data/derived/e1_1_frontend/`.
-13. **E1.1 could not test the rendering or shortcut hypotheses.** All six
-    front-ends share one colormap, normalisation and flip, so an
-    image-statistics shortcut would be invisible to the design. That question
-    remains with E1.2 (colormap/orientation) and E1.4 (silence/noise/duration
-    controls).
+12. **E1.1 and E1.2 are single-seed and outside the data audit.** Every
+    condition in sections 4.11 and 4.12 is one training run, and no confidence
+    intervals or significance tests exist, so the 1–3 point EER gaps are
+    suggestive rather than decisive. The cheapest open follow-ups are multi-seed
+    replications: `mel128`, `mel256`, `linear_stft`, `randproj128` (E1.1) and
+    `magma_flip`, `viridis_flip`, `viridis_noflip`, `gray_noflip` (E1.2, to
+    resolve the orientation interaction). `make audit-data` also does not yet
+    hash `data/derived/e1_1_frontend/` or `data/derived/e1_2_rendering/`.
+13. **Rendering shortcuts ruled out; silence/noise/duration still open.** E1.2
+    found colormap, contrast normalisation and PNG encoding to be irrelevant and
+    orientation only a small colormap-dependent interaction (section 4.12), so a
+    colormap/contrast/encoding shortcut is no longer a live hypothesis. The
+    remaining shortcut question — silence, noise, and duration controls — remains
+    with E1.4.
 
 ---
 
@@ -870,3 +933,10 @@ For any new task:
   run.
 - [`Models/Iteration1/e_1_1/MODELS.md`](./Models/Iteration1/e_1_1/MODELS.md): E1.1
   probe checkpoints, training outcome and evaluation table.
+- [`reports/phase1/e1_2_rendering/README.md`](./reports/phase1/e1_2_rendering/README.md):
+  E1.2 rendering ablation: verdicts, single-variable comparisons, threats to validity.
+- [`reports/phase1/e1_2_rendering/PREREGISTRATION.md`](./reports/phase1/e1_2_rendering/PREREGISTRATION.md):
+  E1.2 question, conditions, metric contract and decision rules fixed before the
+  run.
+- [`Models/Iteration1/e_1_2/MODELS.md`](./Models/Iteration1/e_1_2/MODELS.md): E1.2
+  probe checkpoints, training config and evaluation table.

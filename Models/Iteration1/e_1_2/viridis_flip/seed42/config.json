@@ -1,0 +1,123 @@
+{
+  "experiment": "E1.2",
+  "generated_at_utc": "2026-11-26T18:08:38+00:00",
+  "command": "'/home/toastu/Research/Spoof Detection/.venv/bin/python' scripts/train_e1_2_probes.py --conditions magma_flip viridis_flip gray_flip rawdb_flip magma_noflip viridis_noflip gray_noflip magma_flip_rgb --seeds 42 --image-root data/derived/e1_2_rendering --checkpoint-root Models/Iteration1/e_1_2",
+  "frontend": "viridis_flip",
+  "frontend_payload": {
+    "version": "mel128-viridis-flip-4s-v1",
+    "condition": "viridis_flip",
+    "description": "128-band mel, viridis, flipped, RGBA",
+    "representation": "mel128",
+    "representation_version": "mel128-magma-4s-v1",
+    "params": {
+      "n_mels": 128,
+      "n_fft": 2048,
+      "hop_length": 512,
+      "power_to_db_ref": "np.max"
+    },
+    "colormap": "viridis",
+    "orientation": "lower",
+    "flip": true,
+    "encoding": "RGBA",
+    "normalization": "per_clip_minmax",
+    "db_range": null,
+    "sample_rate": 16000,
+    "target_seconds": 4,
+    "target_length": 64000,
+    "resize": [
+      224,
+      224
+    ],
+    "imagenet_mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "imagenet_std": [
+      0.229,
+      0.224,
+      0.225
+    ]
+  },
+  "training": {
+    "seed": 42,
+    "batch_size": 32,
+    "learning_rate": 0.001,
+    "max_epochs": 20,
+    "patience": 5,
+    "loss": "BCEWithLogitsLoss (unweighted)",
+    "optimizer": "Adam",
+    "selection": "best full-dev BCE loss",
+    "freeze_bn": false,
+    "backbone_weights": "torchvision",
+    "limit": null
+  },
+  "data": {
+    "train_manifest": "/home/toastu/Research/Spoof Detection/manifests/e1_2_rendering/viridis_flip_train.csv",
+    "train_manifest_sha256": "ceb40b27980ab54d9e3aedb2ac9f36eff88383d36d14e5694428cb7571504b27",
+    "train_rows": 10080,
+    "dev_manifest": "/home/toastu/Research/Spoof Detection/manifests/e1_2_rendering/viridis_flip_dev.csv",
+    "dev_manifest_sha256": "7555523fadc9ed1ec8623c993e7320d9483dd0cd034c1412f72d4e93224c4ee3",
+    "dev_rows": 24844
+  },
+  "model": {
+    "architecture": "ResNet18 -> Linear(512,128) -> ReLU -> Dropout(0.5) -> Linear(128,1)",
+    "frozen": "backbone parameters requires_grad=False",
+    "batch_norm": "train mode (baseline-faithful)",
+    "head_init": "torch.manual_seed(42) + reset_parameters()",
+    "backbone_parity": {
+      "checked_keys": 60,
+      "mismatched_keys": [],
+      "reference_checkpoint": "/home/toastu/Research/Spoof Detection/Models/Iteration1/best_audio_spoof_model_unweighted.pth",
+      "reference_sha256": "abf8d9c9169d363bf9e9076b61689056a78d814c95de9634aea9acf96afc54d8",
+      "note": "Conv/BN affine weights and biases only; batch-norm running statistics are excluded because the baseline updated them."
+    }
+  },
+  "result": {
+    "checkpoint": {
+      "path": "/home/toastu/Research/Spoof Detection/Models/Iteration1/e_1_2/viridis_flip/seed42/resnet18_frozen_viridis_flip_seed42.pth",
+      "sha256": "4c8889effba341f9a78dd5f3059e2dc163be5d7735b6ff6b11e4b1fd6f22e0ed",
+      "state_dict_keys": 124,
+      "remapped_keys": 124,
+      "missing_keys": [],
+      "unexpected_keys": [],
+      "total_parameters": 11242305,
+      "backbone_parameters": 11176512,
+      "head_parameters": 65793,
+      "head_state_sha256": "969c89929b631722985244160e385e1da2c58136cd3a176f24e0fac7755b0d0c",
+      "head_last_bias": -0.3733648955821991,
+      "batch_norm_steps": [
+        6300
+      ]
+    },
+    "best_epoch": 20,
+    "epochs_run": 20,
+    "best_dev_loss": 0.08362435779741188,
+    "best_dev_eer": 0.05808346978768322,
+    "best_dev_auc": 0.9874982327119802,
+    "train_log": "/home/toastu/Research/Spoof Detection/Models/Iteration1/e_1_2/viridis_flip/seed42/train_log.csv"
+  },
+  "environment": {
+    "python": "3.14.8",
+    "platform": "Linux-7.2.9-201.fc44.x86_64-x86_64-with-glibc2.43",
+    "torch": "2.15.0+cu132",
+    "torchvision": "0.29.2+cu132",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "librosa": "1.0.0",
+    "matplotlib": "3.11.2",
+    "cuda_available": true,
+    "cudnn_version": 92600,
+    "device": "cuda",
+    "device_name": "NVIDIA GeForce RTX 3050 Laptop GPU"
+  },
+  "git": {
+    "commit": "4fb53d685d23dc9f1040cf4744479bc4bbabd033",
+    "dirty": true,
+    "status_porcelain": [
+      "?? Models/Iteration1/e_1_2/magma_flip/",
+      "?? Models/Iteration1/e_1_2/viridis_flip/",
+      "?? reports/phase1/e1_2_rendering/export_manifest.json"
+    ]
+  }
+}

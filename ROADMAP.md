@@ -5,19 +5,23 @@ Prioritized research roadmap for the audio spoof detection project.
 Read [`AGENTS.md`](./AGENTS.md) first. It contains the operating rules, verified
 current state, and hard guardrails. This document assumes those rules.
 
-Last updated: 2026-11-23.
+Last updated: 2026-11-28.
 
-**Current status (2026-11-23):** Phase 0 (E0.1–E0.5) is complete, and Phase 1 has
-started with E1.1 complete. The 10,080-clip training subset is reconstructed at
-`data/derived/train_seed42/` with manifest `manifests/train_seed42.csv`; the
-evaluation harness scores full dev/eval reproducibly; the two-checkpoint baseline
-is frozen at `reports/baseline/README.md`; preprocessing, checkpoint-loading, and
-app contract tests pass via `make test`; and the data and leakage audit finds no
-train/dev/eval leakage (`reports/audit/data_audit.md`). E1.1 compared six
-time-frequency front-ends with a frozen backbone and found that mel resolution
-matters up to 128 bands but that mel warping is not required for baseline-like
-in-domain performance (`reports/phase1/e1_1_frontend/README.md`). E1.4 is the next
-priority.
+**Current status (2026-11-28):** Phase 0 (E0.1–E0.5) is complete, and Phase 1 has
+started with E1.1 and E1.2 complete. The 10,080-clip training subset is
+reconstructed at `data/derived/train_seed42/` with manifest
+`manifests/train_seed42.csv`; the evaluation harness scores full dev/eval
+reproducibly; the two-checkpoint baseline is frozen at
+`reports/baseline/README.md`; preprocessing, checkpoint-loading, and app contract
+tests pass via `make test`; and the data and leakage audit finds no train/dev/eval
+leakage (`reports/audit/data_audit.md`). E1.1 compared six time-frequency
+front-ends with a frozen backbone and found that mel resolution matters up to 128
+bands but that mel warping is not required for baseline-like in-domain performance
+(`reports/phase1/e1_1_frontend/README.md`). E1.2 ablated colormap, orientation, dB
+scaling and PNG encoding over the fixed mel128 representation and found that
+colormap, contrast normalisation and PNG encoding are all largely irrelevant, while
+orientation is a small colormap-dependent interaction (`reports/phase1/e1_2_rendering/README.md`).
+E1.4 is the next priority.
 
 ---
 
@@ -310,6 +314,11 @@ Pre-registration:
 
 ### E1.2 Do colormap and orientation matter?
 
+**Status: complete (2026-11-28).** Report:
+[`reports/phase1/e1_2_rendering/README.md`](reports/phase1/e1_2_rendering/README.md).
+Pre-registration:
+[`reports/phase1/e1_2_rendering/PREREGISTRATION.md`](reports/phase1/e1_2_rendering/PREREGISTRATION.md).
+
 - **Question:** Is the model reading spectral content, or incidental image
   statistics introduced by `magma` and the vertical flip?
 - **Method:** Ablate colormap (`magma`, `viridis`, grayscale, raw dB) and
@@ -319,6 +328,22 @@ Pre-registration:
   If removing the flip causes a large EER change, orientation is a shortcut and
   must be documented.
 - **Artifact:** `reports/phase1/e1_2_rendering/` with an ablation matrix.
+- **Result:** Eight head-only probes, seed 42, 10,080-clip training manifest, dev
+  (A01–A06, 24,844 clips, 2,548/22,296) for early stopping and eval (A07–A19,
+  71,237 clips, 7,355/63,882) as the clean estimate. The control `magma_flip`
+  reproduces E1.1 `mel128` exactly (eval 11.41% / AUC 0.9536). Eval EER
+  (threshold-free): `viridis_noflip` 11.26%, `gray_noflip` 11.35%, `magma_flip`
+  (control) 11.41%, `magma_flip_rgb` 11.41%, `magma_noflip` 11.92%, `gray_flip`
+  12.44%, `rawdb_flip` 12.44%, `viridis_flip` 12.94%. H4 (encoding) confirmed:
+  RGBA vs RGB differs by 0.00. H3 (contrast) not supported: fixed `[-80, 0]` dB
+  equals per-clip min-max (0.00). H1 (colormap) not supported: grayscale is
+  competitive with both colored maps, so chroma buys nothing. H2 (orientation)
+  shows a small, colormap-dependent interaction — `magma` is better flipped (the
+  existing contract) while `gray`/`viridis` are better unflipped — but no pair
+  reaches the 5-point shortcut bar. The canonical `mel128` + `magma` +
+  `origin='lower'` contract is not beaten by more than 0.15 points, so no change
+  is warranted. Single seed, so the 0.5–1.7 point gaps are suggestive rather than
+  decisive; the 0.00 nulls (encoding, contrast) are robust.
 
 ### E1.3 Is the frozen backbone the right compute trade-off?
 
@@ -545,21 +570,25 @@ safe to expose.
 
 ## 10. Prioritized next actions
 
-E0.1–E0.5 and E1.1 are complete, so Phase 0 is closed and Phase 1 is underway. The
-remaining prioritized actions are:
+E0.1–E0.5, E1.1 and E1.2 are complete, so Phase 0 is closed and Phase 1 is underway.
+The remaining prioritized actions are:
 
 | Priority | Experiment | Reason |
 |---:|---|---|
-| 1 | E1.4 | Cheapest high-information test: is the baseline using shortcuts? E1.1 could not test this. |
-| 2 | E1.2 | Clarifies whether the image rendering is doing real work; E1.1 held rendering fixed. |
-| 3 | E2.1 | Establishes the domain gap before investing in scaling |
-| 4 | E1.3 | Tests whether unfreezing is worth the compute |
-| 5 | E3.1 | Guides the data-vs-architecture decision |
-| 6 | E2.5 | Required before the app can report honest confidence; E1.1 found `FPR@0.5` is dominated by score shift |
+| 1 | E1.4 | Cheapest high-information test: is the baseline using shortcuts? E1.1 could not test this; E1.2 ruled out colormap/contrast/encoding shortcuts but not silence/noise/duration. |
+| 2 | E2.1 | Establishes the domain gap before investing in scaling |
+| 3 | E1.3 | Tests whether unfreezing is worth the compute |
+| 4 | E3.1 | Guides the data-vs-architecture decision |
+| 5 | E2.5 | Required before the app can report honest confidence; E1.1 and E1.2 both found `FPR@0.5` is dominated by score shift |
 
-One cheap follow-up to E1.1 is not a new experiment ID: replicate `mel128`,
-`mel256`, `linear_stft` and `randproj128` with 3 extra seeds to put error bars on
-the 1–3 point differences, since every E1.1 condition is currently a single run.
+Two cheap follow-ups are not new experiment IDs — multi-seed replications to put
+error bars on the single-seed differences:
+
+1. E1.1: replicate `mel128`, `mel256`, `linear_stft` and `randproj128` with 3
+   extra seeds.
+2. E1.2: replicate `magma_flip`, `viridis_flip`, `viridis_noflip` and
+   `gray_noflip` with 3 extra seeds to resolve the orientation interaction (the
+   makefile already accepts `E1_2_SEEDS`).
 
 Do not start a lower-priority experiment while a higher-priority gate item is
 unresolved, unless the user explicitly reprioritizes.
